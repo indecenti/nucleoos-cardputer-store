@@ -1,0 +1,41 @@
+{
+  "id": "orde",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Orde",
+    "en": "Hordes",
+    "es": "Hordas",
+    "fr": "Hordes",
+    "de": "Horden"
+  },
+  "description": {
+    "it": "Sopravvivi alle orde: armi automatiche, livelli e potenziamenti, ondate sempre piu' fitte.",
+    "en": "Survive the hordes: automatic weapons, levels and upgrades, ever thicker waves.",
+    "es": "Sobrevive a las hordas: armas automaticas, niveles y mejoras, oleadas cada vez mas densas.",
+    "fr": "Survivez aux hordes : armes automatiques, niveaux et ameliorations, vagues toujours plus denses.",
+    "de": "Ueberlebe die Horden: automatische Waffen, Level und Upgrades, immer dichtere Wellen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "imu"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "e8b59d64ef725187636d6a185ff5f96560773e88",
+    "register": "nucleo_register_vs",
+    "sources": [
+      "firmware/components/nucleo_app/app_vs.cpp",
+      "firmware/components/nucleo_app/vs_sim.c"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
