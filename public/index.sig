@@ -1,0 +1,3 @@
+nucleoos-cardputer-sig-v1
+key 7144a7c1dde55968
+sig MEQCIAcYMrjis4XVrIZw9BMzfuZvGMn8yRM3ijgRzBOmy2eQAiA/SDAO14kzzrAEaGHWfZZiPVxZ8qSl6K2O1vywTvnc9w==

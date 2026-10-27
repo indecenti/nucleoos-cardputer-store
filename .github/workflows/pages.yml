@@ -1,0 +1,50 @@
+# Verifies the store and publishes public/ on GitHub Pages.
+# This job holds no signing key: it can only check signatures (keys/*.pem) and publish what passes.
+name: store
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"        # weekly: fails loudly 30 days before the catalog expires
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: store-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "cryptography>=42,<46"
+      - name: Security tests
+        run: python tools/test_store.py
+      - name: Verify the catalog and every package
+        run: python tools/store.py verify --warn-days 30
+
+  deploy:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4

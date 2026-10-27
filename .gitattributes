@@ -1,0 +1,6 @@
+# Signed bytes must stay byte-exact on every checkout (a CRLF conversion would break every hash and
+# signature), so the payloads and the published tree are never touched by line-ending conversion.
+* text=auto eol=lf
+apps/*/files/** -text
+public/** -text
+keys/*.pem -text

@@ -1,0 +1,26 @@
+{
+  "id": "metronome",
+  "kind": "web",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.0",
+  "category": "media",
+  "name": {
+    "it": "Metronomo",
+    "en": "Metronome",
+    "es": "Metronomo",
+    "fr": "Metronome",
+    "de": "Metronom"
+  },
+  "description": {
+    "it": "Metronomo con tap tempo, accenti e suddivisioni, piu' un accordatore cromatico. Gira nel browser.",
+    "en": "Metronome with tap tempo, accents and subdivisions, plus a chromatic tuner. Runs in the browser.",
+    "es": "Metronomo con tap tempo, acentos y subdivisiones, y un afinador cromatico. Funciona en el navegador.",
+    "fr": "Metronome avec tap tempo, accents et subdivisions, plus un accordeur chromatique. Dans le navigateur.",
+    "de": "Metronom mit Tap-Tempo, Akzenten und Unterteilungen, dazu ein chromatisches Stimmgeraet. Im Browser."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs/tree/main/apps/metronome",
+  "permissions": ["mic"]
+}

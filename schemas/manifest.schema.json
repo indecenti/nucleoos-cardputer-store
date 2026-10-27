@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://indecenti.github.io/nucleoos-cardputer-store/schemas/manifest.schema.json",
+  "title": "NucleoOS Cardputer store app manifest",
+  "description": "apps/<id>/manifest.json. tools/store.py enforces these rules and a few more (id equals the folder name, published versions are immutable).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "version", "version_code", "min_os", "category", "name", "description", "author", "license", "source"],
+  "$defs": {
+    "text24": { "type": "string", "minLength": 1, "maxLength": 24, "pattern": "^[ -{}~]+$" },
+    "text120": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[ -{}~]+$" },
+    "langs24": {
+      "type": "object", "additionalProperties": false, "required": ["it", "en", "es", "fr", "de"],
+      "properties": { "it": { "$ref": "#/$defs/text24" }, "en": { "$ref": "#/$defs/text24" }, "es": { "$ref": "#/$defs/text24" },
+                      "fr": { "$ref": "#/$defs/text24" }, "de": { "$ref": "#/$defs/text24" } }
+    },
+    "langs120": {
+      "type": "object", "additionalProperties": false, "required": ["it", "en", "es", "fr", "de"],
+      "properties": { "it": { "$ref": "#/$defs/text120" }, "en": { "$ref": "#/$defs/text120" }, "es": { "$ref": "#/$defs/text120" },
+                      "fr": { "$ref": "#/$defs/text120" }, "de": { "$ref": "#/$defs/text120" } }
+    }
+  },
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$" },
+    "kind": { "enum": ["web", "data", "native"] },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "version_code": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+    "min_os": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "category": { "enum": ["games", "tools", "media", "office", "learn", "network", "security", "system"] },
+    "name": { "$ref": "#/$defs/langs24" },
+    "description": { "$ref": "#/$defs/langs120" },
+    "author": { "$ref": "#/$defs/text120" },
+    "license": { "$ref": "#/$defs/text120" },
+    "source": { "$ref": "#/$defs/text120" },
+    "permissions": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["net", "fs", "audio", "mic", "imu", "ir", "ble", "wifi", "gpio", "usb"] }
+    },
+    "entry": { "type": "string", "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*){0,3}$" }
+  }
+}

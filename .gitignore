@@ -1,0 +1,10 @@
+# Signing keys never live in the repository (they are in ~/.nucleo/). Belt and braces:
+*.key
+*-key.pem
+*private*
+# Tooling
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini

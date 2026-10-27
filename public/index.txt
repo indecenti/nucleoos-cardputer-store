@@ -1,0 +1,5 @@
+nucleoos-cardputer-index-v1
+serial 1
+expires 1803468319
+apps 1
+app	metronome	web	1	1.0.0	0.8.0	media	34715	7d510c42cc52c6346f6095096e6efd05a0effe127b1c201821651a05e3083a4d	mic	Metronomo|Metronome|Metronomo|Metronome|Metronom	Metronomo con tap tempo, accenti e suddivisioni, piu' un accordatore cromatico. Gira nel browser.|Metronome with tap tempo, accents and subdivisions, plus a chromatic tuner. Runs in the browser.|Metronomo con tap tempo, acentos y subdivisiones, y un afinador cromatico. Funciona en el navegador.|Metronome avec tap tempo, accents et subdivisions, plus un accordeur chromatique. Dans le navigateur.|Metronom mit Tap-Tempo, Akzenten und Unterteilungen, dazu ein chromatisches Stimmgeraet. Im Browser.
