@@ -4,3 +4,4 @@
 apps/*/files/** -text
 public/** -text
 keys/*.pem -text
+*.nap binary
