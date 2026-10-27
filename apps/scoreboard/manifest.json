@@ -1,0 +1,20 @@
+{
+  "id": "scoreboard",
+  "kind": "web",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.0",
+  "category": "games",
+  "name": { "it": "Segnapunti", "en": "Scoreboard", "es": "Marcador", "fr": "Marqueur", "de": "Punktezaehler" },
+  "description": {
+    "it": "Segna i punti di carte e giochi da tavolo: giocatori, +1/-1/+5/+10, annulla, punti per vincere. Offline.",
+    "en": "Keep score for card and board games: players, +1/-1/+5/+10, undo, winning score. Works offline.",
+    "es": "Lleva los puntos de cartas y juegos de mesa: jugadores, +1/-1/+5/+10, deshacer, meta. Sin conexion.",
+    "fr": "Comptez les points aux cartes et jeux de societe : joueurs, +1/-1/+5/+10, annuler, objectif. Hors ligne.",
+    "de": "Punkte fuer Karten- und Brettspiele: Spieler, +1/-1/+5/+10, rueckgaengig, Siegpunkte. Offline."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/nucleoos-cardputer-store/tree/main/apps/scoreboard",
+  "permissions": []
+}

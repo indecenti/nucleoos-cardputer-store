@@ -1,0 +1,15 @@
+nucleoos-cardputer-pkg-v1
+scoreboard
+1
+web
+be889c713a6cf8b2a872004897f3f695488621a04ebe3b5aaf3fef7aaec4784e 615 manifest.json
+59b6709a5f8a09632c605dbb68a26d12ee336414b0f45203b687ef06cfd8e358 470 www/i18n.de.json
+f9610d8946a12a75c0e8808f5712e370b5034d26b3d6ec4511d00a69a3ac3918 436 www/i18n.en.json
+a1081eac4c62f5eb67333704eb18adb8248724c8249a2aa997cf808d1d8743ae 469 www/i18n.es.json
+29330021c4fd34d774055122e8442a7c574ac6851dc94cbefbb15afe22104dc1 467 www/i18n.fr.json
+b10604986da354f98eee1f4b9fd5031d2cdb9fa9cf2065990d6e8b98bcab348c 481 www/i18n.it.json
+ed35ade599a0bb351d0dd93e0140ba7ee1e5ba6b9b1462c4d3d2d3ca4f4f6136 539 www/icon.svg
+0836fe19c09346816abac9c4bf68281e336042e2da739a2adfb8d9c57150c6d3 8746 www/index.html
+--
+key 7144a7c1dde55968
+sig MEUCIQC/h/BkO4vF1QITA4IRX5GBR+MzpT8ikEn/o6HnZ70IHwIgM/i+SUZIyqtahHoJA/E56K9byoF4oxWudeyL+jXjC2o=
