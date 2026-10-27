@@ -1,0 +1,6 @@
+nucleoos-cardputer-index-v2
+channel native
+serial 1
+expires 1803493185
+apps 1
+app	stelle	native	1	1.0.0	0.7.5	games	106852	4822ca4c54655b3b9a62411eaf8225d8060316a4ed0a280aaa597ae1289bf3f3	audio,imu	Costellazioni|Constellations|Constelaciones|Constellations|Sternbilder	Mercante stellare: commercia tra i sistemi, combatti i pirati, riaccendi i Fari della galassia.|Star trader: trade between systems, fight pirates, relight the Beacons of the galaxy.|Mercader estelar: comercia entre sistemas, lucha contra piratas, reenciende los Faros.|Marchand stellaire : commercez entre les systemes, combattez les pirates, rallumez les Phares.|Sternenhaendler: handle zwischen Systemen, bekaempfe Piraten, entzuende die Leuchtfeuer neu.	1793059200	indecenti	1
