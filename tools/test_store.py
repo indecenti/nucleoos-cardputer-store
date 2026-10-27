@@ -8,6 +8,7 @@ Each test builds a throw-away store in a temp dir with throw-away keys (never th
 import json
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -38,6 +39,24 @@ def manifest(app_id, code=1, **over):
     return m
 
 
+COMMIT = "0123456789abcdef0123456789abcdef01234567"
+
+
+def native_manifest(app_id, code=1, **over):
+    m = manifest(app_id, code, kind="native", category="games", abi=1,
+                 build={"repo": "indecenti/NucleoOs", "commit": COMMIT, "register": "nucleo_register_demo",
+                        "sources": ["firmware/components/nucleo_app/app_demo.cpp"]})
+    m.update(over)
+    return m
+
+
+def fake_nap(app_id, abi=1):
+    """Enough of a .nap for the store's checks (the firmware loader gate runs the real ones on real modules)."""
+    elf = bytearray(b"\x7fELF\x01\x01\x01" + bytes(9) + struct.pack("<HHI", 3, 94, 1) + bytes(32))
+    info = struct.pack("<IHHII", 0x3150414E, abi, 0, 0x12345678, 0) + app_id.encode().ljust(33, b"\0") + bytes(3)
+    return bytes(elf) + bytes(64) + info + bytes(64)
+
+
 class Store:
     def __init__(self):
         self.dir = tempfile.mkdtemp(prefix="cpstore-")
@@ -55,9 +74,23 @@ class Store:
         assert code == 0, out
         return out
 
+    def native(self, app_id, files=None, **over):
+        """A native app that passes the store's rules, with `files` added or replacing (None = remove)."""
+        d = os.path.join(self.dir, "apps", "native", app_id)
+        shutil.rmtree(os.path.join(d, "files"), ignore_errors=True)
+        os.makedirs(os.path.join(d, "files"), exist_ok=True)
+        with open(os.path.join(d, "manifest.json"), "w") as f:
+            json.dump(native_manifest(app_id, **over), f)
+        base = {"app.nap": fake_nap(app_id), "device-icon.txt": device_icon("n-" + app_id)}
+        base.update(files or {})
+        for rel, data in base.items():
+            if data is not None:
+                with open(os.path.join(d, "files", rel), "wb") as f:
+                    f.write(data)
+
     def app(self, app_id, files, scaffold=True, **over):
         """A web app that passes every Cardputer rule, with `files` added or replacing (None = remove)."""
-        d = os.path.join(self.dir, "apps", app_id)
+        d = os.path.join(self.dir, "apps", "web", app_id)
         shutil.rmtree(os.path.join(d, "files"), ignore_errors=True)
         os.makedirs(os.path.join(d, "files"), exist_ok=True)
         m = manifest(app_id, **over)
@@ -106,11 +139,11 @@ class T(unittest.TestCase):
     def test_publish_and_verify(self):
         self.published()
         out = self.s.ok("verify")
-        self.assertIn("1 app(s)", out)
+        self.assertIn("1 app(s) in 2 channels", out)
 
     def test_tampered_payload_is_refused(self):
         self.published()
-        with open(self.s.path("public", "apps", "demo", "1", "www", "index.html"), "ab") as f:
+        with open(self.s.path("public", "web", "apps", "demo", "1", "www", "index.html"), "ab") as f:
             f.write(b"<script>evil()</script>")
         code, out = self.s.run("verify")
         self.assertNotEqual(code, 0)
@@ -118,13 +151,13 @@ class T(unittest.TestCase):
 
     def test_extra_unsigned_file_is_refused(self):
         self.published()
-        with open(self.s.path("public", "apps", "demo", "1", "www", "evil.js"), "w") as f:
+        with open(self.s.path("public", "web", "apps", "demo", "1", "www", "evil.js"), "w") as f:
             f.write("x")
         self.assertNotEqual(self.s.run("verify")[0], 0)
 
     def test_tampered_catalog_is_refused(self):
         self.published()
-        p = self.s.path("public", "index.txt")
+        p = self.s.path("public", "web", "index.txt")
         with open(p) as f:
             t = f.read()
         with open(p, "w", newline="\n") as f:
@@ -159,12 +192,12 @@ class T(unittest.TestCase):
         self.assertIn("raise version_code", out)
         self.s.app("demo", {"www/index.html": b"<h1>changed</h1>"}, code=2)
         self.s.ok("publish")
-        self.assertFalse(os.path.exists(self.s.path("public", "apps", "demo", "1")))
+        self.assertFalse(os.path.exists(self.s.path("public", "web", "apps", "demo", "1")))
 
     def test_serial_only_goes_up(self):
         self.published()
         self.s.ok("sign")
-        with open(self.s.path("public", "index.txt")) as f:
+        with open(self.s.path("public", "web", "index.txt")) as f:
             self.assertIn("serial 2", f.read())
 
     def test_bad_paths_and_ids_are_refused(self):
@@ -232,6 +265,73 @@ class T(unittest.TestCase):
         self.refused({"www/index.html": None}, "no index.html")
         self.refused({"manifest.json": b'{"id":"demo","runtime":"web","web_route":"/apps/demo/","icon":"x.png","version":"1.0.1"}'}, "not its own icon")
         self.refused({"www/big.bin": b"0" * (2 * 1024 * 1024)}, "too big")
+
+    # ── channels and native apps ──
+    def test_native_app_publishes_in_its_own_channel(self):
+        self.s.native("demo")
+        self.s.app("webapp", {})
+        self.s.ok("publish")
+        with open(self.s.path("public", "native", "index.txt")) as f:
+            t = f.read()
+        self.assertIn("channel native\n", t)
+        self.assertIn("\tnative\t", t)
+        self.assertTrue(t.rstrip("\n").endswith("\t1"))          # the ABI level, last field
+        with open(self.s.path("public", "web", "index.txt")) as f:
+            w = f.read()
+        self.assertIn("channel web\n", w)
+        self.assertNotIn("\tnative\t", w)
+        self.assertTrue(os.path.isfile(self.s.path("public", "native", "apps", "demo", "1", "app.nap")))
+
+    def test_catalog_of_one_channel_is_refused_as_the_other(self):
+        self.s.native("demo")
+        self.s.app("webapp", {})
+        self.s.ok("publish")
+        for name in ("index.txt", "index.sig"):          # a signed catalog served at the other channel's URL
+            shutil.copyfile(self.s.path("public", "web", name), self.s.path("public", "native", name))
+        code, out = self.s.run("verify")
+        self.assertNotEqual(code, 0)
+        self.assertIn("another channel", out)
+
+    def test_id_in_both_channels_is_refused(self):
+        self.s.native("demo")
+        self.s.app("demo", {})
+        code, out = self.s.run("build")
+        self.assertNotEqual(code, 0)
+        self.assertIn("one channel", out)
+
+    def test_kind_must_match_its_channel(self):
+        self.s.native("demo", kind="web")
+        self.assertNotEqual(self.s.run("build")[0], 0)
+        shutil.rmtree(self.s.path("apps"))
+        self.s.app("demo", {}, kind="native")
+        self.assertNotEqual(self.s.run("build")[0], 0)
+
+    def test_app_outside_a_channel_is_refused(self):
+        os.makedirs(self.s.path("apps", "loose", "files"))
+        code, out = self.s.run("build")
+        self.assertNotEqual(code, 0)
+        self.assertIn("outside a channel", out)
+
+    def native_refused(self, why, files=None, **over):
+        shutil.rmtree(self.s.path("apps"), ignore_errors=True)
+        self.s.native("demo", files, **over)
+        code, out = self.s.run("build")
+        self.assertNotEqual(code, 0, f"accepted: {why}")
+        return out
+
+    def test_native_rules(self):
+        self.assertIn("committed", self.native_refused("dirty test build", build=dict(native_manifest("demo")["build"], commit=COMMIT + "-dirty")))
+        self.native_refused("no commit", build={"repo": "x", "sources": ["a.cpp"], "register": "r"})
+        self.native_refused("source escapes the repo", build=dict(native_manifest("demo")["build"], sources=["../../etc/x.cpp"]))
+        self.native_refused("abi missing", abi=0)
+        self.native_refused("code injected through the recipe", build=dict(native_manifest("demo")["build"], register="f); system(\"x\"); (void"))
+        self.assertIn("exactly", self.native_refused("extra file", {"extra.bin": b"x"}))
+        self.native_refused("no module", {"app.nap": None})
+        self.native_refused("not ELF", {"app.nap": b"MZ" + bytes(200)})
+        self.assertIn("says id", self.native_refused("module of another app", {"app.nap": fake_nap("other")}))
+        self.assertIn("says id", self.native_refused("module for another ABI", {"app.nap": fake_nap("demo", abi=2)}))
+        self.native_refused("too big", {"app.nap": fake_nap("demo") + bytes(600 * 1024)})
+        self.native_refused("no launcher icon", {"device-icon.txt": None})
 
     def test_keygen_never_overwrites(self):
         code, out = self.s.run("keygen")

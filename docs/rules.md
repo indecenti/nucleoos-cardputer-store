@@ -40,8 +40,24 @@ www/i18n.<lang>.json one per language (loaded by /nucleo-i18n.js, the OS i18n ru
 They run in the browser of whoever opens them (the Cardputer only serves files): Web Audio, storage and
 the UI cost the device nothing.
 
-## Native apps (planned)
+## Native apps
 
-Executed from flash on the Cardputer. They will additionally be built against a versioned firmware API,
-tested on both the original Cardputer and the ADV before they are signed, and draw within the 240x135
-screen with the system fonts and keyboard conventions (`docs/device-ui.md` in NucleoOS).
+Run on the Cardputer itself, loaded from the SD card into a flash region and executed from there
+(NucleoOS `docs/native-apps.md`). `files/` is exactly:
+
+```
+app.nap              the module, built by tools/native_build.py from NucleoOS source
+device-icon.txt      its launcher icon
+```
+
+- **Built from committed source, reproducibly.** The manifest's `build` recipe names the NucleoOS commit and
+  sources; `tools/native_build.py --check` rebuilds the module byte for byte from it. A test build from a
+  modified checkout (`<commit>-dirty`) is never signed.
+- **Within its ABI.** The manifest's `abi` is the level it was built for; every import is checked against
+  that level's list at build time, and the module's own info record must say the same id and level.
+- **One app, one id.** The id is the app's launcher id; an app that leaves the firmware keeps its built-in id,
+  so its tile, Recents, pins and saves carry over.
+- **Tested on both boards** (original Cardputer and ADV), as an upgrade with saves on the card, before it is
+  signed; draws within 240x135 (and 320x240 on the second screen) with the system fonts and keys
+  (`docs/device-ui.md` in NucleoOS).
+- **At most 512 KB** for the package; the module's code and constants fit the 252 KB flash scratch region.

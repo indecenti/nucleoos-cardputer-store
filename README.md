@@ -11,31 +11,35 @@ every package is signed offline; the device installs nothing whose signature it 
 > Other NucleoOS devices have their own stores: the ESP32-P4 tablet uses
 > [nucleoos-p4-store](https://github.com/indecenti/nucleoos-p4-store).
 
+## Two stores in one repository
+
+The Store app on the Cardputer asks first which one to open; they are two separate signed catalogs and
+never mix.
+
+| Channel | Kinds | What it is | Runs on |
+|---|---|---|---|
+| **Native C** (`native`) | `native` | A C/C++ app built from NucleoOS source into a signed `.nap` module, loaded from the SD card | the Cardputer itself |
+| **Web app** (`web`) | `web`, `data` | A web app the device serves from SD to your browser; content packs | the browser (no device RAM) |
+
 ## Layout
 
 ```
-apps/<id>/manifest.json     the app: id, kind, versions, names and descriptions in 5 languages
-apps/<id>/files/            its payload, installed as /sd/apps/<id>/ on the device
-public/                     what Pages serves: the signed catalog and one folder per published version
+apps/native/<id>/           a native app: manifest.json (with its build recipe) + files/app.nap + launcher icon
+apps/web/<id>/              a web app or content pack: manifest.json + files/
+public/<channel>/           what Pages serves: that channel's signed catalog and one folder per published version
 keys/                       the public keys the firmware trusts (main + backup)
-tools/store.py              build, sign, verify (see below)
-tools/test_store.py         security tests: tampering, rollback, foreign keys, bad paths
+tools/store.py              build, sign, verify both channels (see below)
+tools/native_build.py       builds a native app from NucleoOS source, reproducibly
+tools/test_store.py         security tests: tampering, rollback, foreign keys, bad paths, channel mix-ups
 docs/format.md              the catalog and package format - the contract with the firmware
 docs/rules.md               the rules every app follows (enforced by tools/store.py)
 schemas/                    JSON Schema of manifest.json (for editors; store.py enforces the same rules)
 ```
 
-## Kinds of app
-
-| `kind` | What it is | Runs on |
-|---|---|---|
-| `web` | A web app the device serves from SD to your browser | the browser (no device RAM) |
-| `data` | Content: books, maps, voice packs, ANIMA knowledge | the apps that read it |
-| `native` | A native game executed from flash (planned) | the Cardputer |
-
 ## Publishing (maintainer)
 
 ```sh
+python tools/native_build.py <id> --firmware ../NucleoOs   # native apps: rebuild from the recipe's commit
 python tools/store.py publish      # build public/ from apps/, sign with the offline key, verify
 git add -A && git commit && git push   # CI verifies again and deploys Pages
 ```

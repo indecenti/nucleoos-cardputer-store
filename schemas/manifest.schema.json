@@ -36,6 +36,22 @@
       "type": "array", "uniqueItems": true,
       "items": { "enum": ["net", "fs", "audio", "mic", "imu", "ir", "ble", "wifi", "gpio", "usb"] }
     },
-    "entry": { "type": "string", "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*){0,3}$" }
-  }
+    "entry": { "type": "string", "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*){0,3}$" },
+    "abi": { "description": "native only: the NucleoOS native ABI level the module was built for", "type": "integer", "minimum": 1, "maximum": 65535 },
+    "build": {
+      "description": "native only: how tools/native_build.py rebuilds the module, byte for byte",
+      "type": "object", "additionalProperties": false, "required": ["repo", "commit", "sources", "register"],
+      "properties": {
+        "repo": { "type": "string" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}(-dirty)?$" },
+        "sources": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9._/-]*\\.(c|cc|cpp)$" } },
+        "register": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "flags": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "ram": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "if": { "properties": { "kind": { "const": "native" } } },
+  "then": { "required": ["abi", "build"] },
+  "else": { "not": { "anyOf": [{ "required": ["abi"] }, { "required": ["build"] }] } }
 }

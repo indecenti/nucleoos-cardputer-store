@@ -1,0 +1,40 @@
+{
+  "id": "stelle",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 1,
+  "name": {
+    "it": "Costellazioni",
+    "en": "Constellations",
+    "es": "Constelaciones",
+    "fr": "Constellations",
+    "de": "Sternbilder"
+  },
+  "description": {
+    "it": "Mercante stellare: commercia tra i sistemi, combatti i pirati, riaccendi i Fari della galassia.",
+    "en": "Star trader: trade between systems, fight pirates, relight the Beacons of the galaxy.",
+    "es": "Mercader estelar: comercia entre sistemas, lucha contra piratas, reenciende los Faros.",
+    "fr": "Marchand stellaire : commercez entre les systemes, combattez les pirates, rallumez les Phares.",
+    "de": "Sternenhaendler: handle zwischen Systemen, bekaempfe Piraten, entzuende die Leuchtfeuer neu."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "imu"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "1c1d60bb2c40fcd3169e20a72262d89509bd4e95",
+    "register": "nucleo_register_constellations",
+    "sources": [
+      "firmware/components/nucleo_app/app_constellations.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

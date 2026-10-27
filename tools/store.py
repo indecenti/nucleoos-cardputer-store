@@ -5,12 +5,19 @@ The store is static files on GitHub Pages. The device (M5Stack Cardputer, ESP32-
 downloads a line-oriented catalog to its SD card, checks its signature by hashing it in chunks, then
 reads it one line at a time - so the catalog can grow to any size without costing RAM.
 
-    apps/<id>/manifest.json       what an app is (schemas/manifest.schema.json)
-    apps/<id>/files/...           its payload, installed under /sd/apps/<id>/ on the device
+Two channels, two separate signed catalogs, never mixed (the device asks which one first):
 
-    public/index.txt              the catalog: header + one tab-separated line per app
-    public/index.sig              ECDSA P-256 signature of the catalog
-    public/apps/<id>/<code>/...   one directory per published version: payload + package.sig
+    native   apps that run ON the Cardputer: a .nap module built from NucleoOS source (tools/native_build.py)
+    web      apps the Cardputer serves to a browser (kind web), and content packs (kind data)
+
+    apps/<channel>/<id>/manifest.json        what an app is (schemas/manifest.schema.json)
+    apps/<channel>/<id>/files/...            its payload, installed under /sd/apps/<id>/ on the device
+
+    public/<channel>/index.txt               the catalog: header (with its channel) + one line per app
+    public/<channel>/index.sig               ECDSA P-256 signature of the catalog
+    public/<channel>/apps/<id>/<code>/...    one directory per published version: payload + package.sig
+
+An id is unique across both channels: on the device both install into /sd/apps/<id>/.
 
 Trust: ONLY a maintainer's offline key signs. CI (tools/store.py verify) checks every signature with the
 public keys in keys/ and publishes; it holds no secret, so a compromised GitHub account cannot ship
@@ -37,11 +44,12 @@ APPS = os.path.join(ROOT, "apps")
 PUBLIC = os.path.join(ROOT, "public")
 KEYS = os.path.join(ROOT, "keys")
 
-INDEX_MAGIC = "nucleoos-cardputer-index-v1"
+INDEX_MAGIC = "nucleoos-cardputer-index-v2"
 PKG_MAGIC = "nucleoos-cardputer-pkg-v1"
 SIG_MAGIC = "nucleoos-cardputer-sig-v1"
 LANGS = ("it", "en", "es", "fr", "de")
-KINDS = ("web", "data", "native")         # native = flash-XIP games, accepted only by a firmware that says so
+KINDS = ("web", "data", "native")
+CHANNELS = {"native": ("native",), "web": ("web", "data")}   # channel -> the kinds it carries
 CATEGORIES = ("games", "tools", "media", "office", "learn", "network", "security", "system")
 PERMISSIONS = ("net", "fs", "audio", "mic", "imu", "ir", "ble", "wifi", "gpio", "usb")
 
@@ -54,6 +62,10 @@ MAX_FILE = 4 * 1024 * 1024
 MAX_PACKAGE = 8 * 1024 * 1024
 MAX_NAME = 24
 MAX_DESC = 120
+MAX_NATIVE_PACKAGE = 512 * 1024            # a .nap runs from a 252 KB flash scratch region; with its icon
+NATIVE_FILES = {"app.nap", "device-icon.txt"}
+COMMIT_RE = re.compile(r"^[0-9a-f]{40}(-dirty)?$")       # -dirty: a test build, refused at signing
+SRC_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._/-]*\.(?:c|cc|cpp)$")
 INDEX_TTL_DAYS = 120                       # a catalog older than this is refused (anti-freeze)
 SKIP = {"Thumbs.db", "desktop.ini", ".DS_Store"}
 # A secret must never reach a public repo: refuse files that look like one.
@@ -172,53 +184,71 @@ def text_field(v, maxlen, where):
     return v
 
 
-def load_manifest(app_id):
-    d = os.path.join(APPS, app_id)
+def app_dir(ch, app_id):
+    return os.path.join(APPS, ch, app_id)
+
+
+def load_manifest(ch, app_id):
+    where = f"apps/{ch}/{app_id}"
+    d = app_dir(ch, app_id)
     path = os.path.join(d, "manifest.json")
     if not ID_RE.match(app_id):
-        fail(f"apps/{app_id}: id must match {ID_RE.pattern}")
+        fail(f"{where}: id must match {ID_RE.pattern}")
     if not os.path.isfile(path):
-        fail(f"apps/{app_id}: no manifest.json")
+        fail(f"{where}: no manifest.json")
     with open(path, encoding="utf-8") as f:
         m = json.load(f)
     allowed = {"id", "kind", "version", "version_code", "min_os", "category", "name", "description",
                "author", "license", "source", "permissions", "entry"}
+    if ch == "native":
+        allowed |= {"abi", "build"}
     extra = set(m) - allowed
     if extra:
-        fail(f"apps/{app_id}/manifest.json: unknown fields {sorted(extra)}")
+        fail(f"{where}/manifest.json: unknown fields {sorted(extra)}")
     if m.get("id") != app_id:
-        fail(f"apps/{app_id}: manifest id must equal the folder name")
-    if m.get("kind") not in KINDS:
-        fail(f"apps/{app_id}: kind must be one of {KINDS}")
+        fail(f"{where}: manifest id must equal the folder name")
+    if m.get("kind") not in CHANNELS[ch]:
+        fail(f"{where}: kind must be one of {CHANNELS[ch]} in the {ch} channel")
+    if ch == "native":
+        if not isinstance(m.get("abi"), int) or not 1 <= m["abi"] <= 0xffff:
+            fail(f"{where}: abi must be the ABI level the module was built for")
+        b = m.get("build")
+        need = {"repo", "commit", "sources", "register"}
+        if not isinstance(b, dict) or not need <= set(b) or set(b) - need - {"flags", "ram"}:
+            fail(f"{where}: build must be {{repo, commit, sources, register[, flags, ram]}} (tools/native_build.py)")
+        if not isinstance(b["register"], str) or not re.match(r"^[A-Za-z_][A-Za-z0-9_]{0,63}$", b["register"]) or                 not all(isinstance(b.get(k, 0), int) and 0 <= b.get(k, 0) <= 0xffffff for k in ("flags", "ram")):
+            fail(f"{where}: build.register must be a C identifier, build.flags / build.ram integers")
+        if not isinstance(b["sources"], list) or not b["sources"] or                 not all(isinstance(x, str) and SRC_RE.match(x) and ".." not in x.split("/") for x in b["sources"]):
+            fail(f"{where}: build.sources must be source paths in the NucleoOS repository")
     for k in ("version", "min_os"):
         if not isinstance(m.get(k), str) or not VERSION_RE.match(m[k]):
-            fail(f"apps/{app_id}: {k} must look like 1.2.3")
+            fail(f"{where}: {k} must look like 1.2.3")
     if not isinstance(m.get("version_code"), int) or not 1 <= m["version_code"] <= 2**31 - 1:
-        fail(f"apps/{app_id}: version_code must be a positive integer (it only ever goes up)")
+        fail(f"{where}: version_code must be a positive integer (it only ever goes up)")
     if m.get("category") not in CATEGORIES:
-        fail(f"apps/{app_id}: category must be one of {CATEGORIES}")
+        fail(f"{where}: category must be one of {CATEGORIES}")
     for field, maxlen in (("name", MAX_NAME), ("description", MAX_DESC)):
         v = m.get(field)
         if not isinstance(v, dict) or set(v) != set(LANGS):
-            fail(f"apps/{app_id}: {field} needs exactly the languages {LANGS}")
+            fail(f"{where}: {field} needs exactly the languages {LANGS}")
         for lang in LANGS:
-            text_field(v[lang], maxlen, f"apps/{app_id}: {field}.{lang}")
-    text_field(m.get("author"), 40, f"apps/{app_id}: author")
+            text_field(v[lang], maxlen, f"{where}: {field}.{lang}")
+    text_field(m.get("author"), 40, f"{where}: author")
     for k in ("license", "source"):
-        text_field(m.get(k), 120, f"apps/{app_id}: {k}")
+        text_field(m.get(k), 120, f"{where}: {k}")
     perms = m.get("permissions", [])
     if not isinstance(perms, list) or any(p not in PERMISSIONS for p in perms) or len(set(perms)) != len(perms):
-        fail(f"apps/{app_id}: permissions must be distinct values from {PERMISSIONS}")
+        fail(f"{where}: permissions must be distinct values from {PERMISSIONS}")
     if "entry" in m and (not isinstance(m["entry"], str) or not PATH_RE.match(m["entry"])):
-        fail(f"apps/{app_id}: entry must be a relative path inside files/")
+        fail(f"{where}: entry must be a relative path inside files/")
     return m
 
 
-def payload_files(app_id):
-    """Sorted [(relative path, absolute path)] of apps/<id>/files, with every limit enforced."""
-    base = os.path.join(APPS, app_id, "files")
+def payload_files(ch, app_id):
+    """Sorted [(relative path, absolute path)] of apps/<channel>/<id>/files, with every limit enforced."""
+    base = os.path.join(app_dir(ch, app_id), "files")
     if not os.path.isdir(base):
-        fail(f"apps/{app_id}: no files/ directory")
+        fail(f"apps/{ch}/{app_id}: no files/ directory")
     out, total = [], 0
     for dirpath, dirnames, filenames in os.walk(base):
         dirnames.sort()
@@ -228,22 +258,22 @@ def payload_files(app_id):
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, base).replace(os.sep, "/")
             if os.path.islink(full) or not PATH_RE.match(rel) or ".." in rel.split("/"):
-                fail(f"apps/{app_id}/files/{rel}: path not allowed")
+                fail(f"apps/{ch}/{app_id}/files/{rel}: path not allowed")
             if rel.lower() in ("package.sig",):
-                fail(f"apps/{app_id}/files/{rel}: reserved name")
+                fail(f"apps/{ch}/{app_id}/files/{rel}: reserved name")
             size = os.path.getsize(full)
             if size > MAX_FILE:
-                fail(f"apps/{app_id}/files/{rel}: {size} B is over {MAX_FILE} B")
+                fail(f"apps/{ch}/{app_id}/files/{rel}: {size} B is over {MAX_FILE} B")
             with open(full, "rb") as f:
                 if SECRET_RE.search(f.read()):
-                    fail(f"apps/{app_id}/files/{rel}: looks like it contains a secret")
+                    fail(f"apps/{ch}/{app_id}/files/{rel}: looks like it contains a secret")
             total += size
             out.append((rel, full))
     out.sort(key=lambda t: t[0].encode())
     if not out:
-        fail(f"apps/{app_id}: files/ is empty")
+        fail(f"apps/{ch}/{app_id}: files/ is empty")
     if len(out) > MAX_FILES or total > MAX_PACKAGE:
-        fail(f"apps/{app_id}: {len(out)} files / {total} B over the limits ({MAX_FILES} / {MAX_PACKAGE} B)")
+        fail(f"apps/{ch}/{app_id}: {len(out)} files / {total} B over the limits ({MAX_FILES} / {MAX_PACKAGE} B)")
     return out
 
 
@@ -291,8 +321,8 @@ def cardputer_rules(m, files):
     on = sum(r.count("#") for r in bits)
     if on < 60 or on > 32 * 32 - 60:
         rule_fail(app_id, f"files/{DEVICE_ICON} has {on} pixels on: draw an icon, not a blank or a block")
-    for other in app_ids():
-        o = os.path.join(APPS, other, "files", DEVICE_ICON)
+    for och, other in all_apps():
+        o = os.path.join(app_dir(och, other), "files", DEVICE_ICON)
         if other != app_id and os.path.isfile(o) and device_icon_bits(o) == bits:
             rule_fail(app_id, f"files/{DEVICE_ICON} is the same drawing as {other}'s")
     total = sum(os.path.getsize(full) for full in rel.values())
@@ -309,6 +339,8 @@ def cardputer_rules(m, files):
                 rule_fail(app_id, f"{r} loads something from the Internet ({hit.group(0)[:40]!r}): store apps work offline")
             if not r.endswith((".json", ".svg", ".txt", ".md")) and UNSAFE_RE.search(data):
                 rule_fail(app_id, f"{r} runs code from strings (eval / new Function / document.write / string timers)")
+    if m["kind"] == "native":
+        native_rules(m, rel, total)
     if m["kind"] == "web":
         if total > MAX_WEB_PACKAGE:
             rule_fail(app_id, f"web apps are at most {MAX_WEB_PACKAGE} B ({total} B)")
@@ -336,8 +368,8 @@ def cardputer_rules(m, files):
             rule_fail(app_id, "www/icon.svg must be plain drawing: no scripts, event handlers or external links")
         if svg.count(b"<") < 4:
             rule_fail(app_id, "www/icon.svg is too bare to be a drawn icon")
-        for other in app_ids():
-            o = os.path.join(APPS, other, "files", "www", "icon.svg")
+        for och, other in all_apps():
+            o = os.path.join(app_dir(och, other), "files", "www", "icon.svg")
             if other != app_id and os.path.isfile(o) and sha256_file(o) == sha256_file(icon):
                 rule_fail(app_id, f"www/icon.svg is the same drawing as {other}'s: every app has its own icon")
         # Every language, with the same keys.
@@ -354,6 +386,30 @@ def cardputer_rules(m, files):
                 rule_fail(app_id, f"files/{p} has different keys from the others: {sorted(cat ^ keys)[:5]}")
 
 
+def native_rules(m, rel, total):
+    """A native package is its module and its launcher icon, nothing else; the module says what the manifest says."""
+    app_id = m["id"]
+    if set(rel) != NATIVE_FILES:
+        rule_fail(app_id, f"a native app ships exactly {sorted(NATIVE_FILES)} (has {sorted(rel)})")
+    if total > MAX_NATIVE_PACKAGE:
+        rule_fail(app_id, f"native packages are at most {MAX_NATIVE_PACKAGE} B ({total} B)")
+    commit = m["build"]["commit"]
+    if not COMMIT_RE.match(commit) or commit.endswith("-dirty"):
+        rule_fail(app_id, f"built from {commit!r}: only a module built from a committed NucleoOS source is published "
+                          "(tools/native_build.py without --allow-dirty)")
+    with open(rel["app.nap"], "rb") as f:
+        data = f.read()
+    if data[:4] != b"\x7fELF" or data[4:6] != b"\x01\x01" or data[16:20] != b"\x03\x00\x5e\x00":
+        rule_fail(app_id, "app.nap is not an Xtensa shared object (tools/native_build.py)")
+    at = data.find(b"NAP1")
+    if at < 0 or data.find(b"NAP1", at + 1) >= 0:
+        rule_fail(app_id, "app.nap needs exactly one nucleo_native_info")
+    abi = int.from_bytes(data[at + 4:at + 6], "little")
+    info_id = data[at + 16:at + 49].split(b"\0")[0].decode("ascii", "replace")
+    if info_id != app_id or abi != m["abi"]:
+        rule_fail(app_id, f"app.nap says id {info_id!r} abi {abi}; the manifest says {app_id!r} abi {m['abi']}")
+
+
 def package_text(m, files):
     """The exact signed text of a package (docs/format.md)."""
     lines = [PKG_MAGIC, m["id"], str(m["version_code"]), m["kind"]]
@@ -362,24 +418,54 @@ def package_text(m, files):
 
 
 # ── build ─────────────────────────────────────────────────────────────────────
-def app_ids():
-    if not os.path.isdir(APPS):
+def app_ids(ch):
+    d = os.path.join(APPS, ch)
+    if not os.path.isdir(d):
         return []
-    return sorted(d for d in os.listdir(APPS) if os.path.isdir(os.path.join(APPS, d)))
+    return sorted(x for x in os.listdir(d) if os.path.isdir(os.path.join(d, x)))
 
 
-def pkg_dir(m):
-    return os.path.join(PUBLIC, "apps", m["id"], str(m["version_code"]))
+def all_apps():
+    """(channel, id) of every app; an id may exist in one channel only (one /sd/apps/<id>/ on the device)."""
+    out, seen = [], {}
+    stray = sorted(x for x in (os.listdir(APPS) if os.path.isdir(APPS) else []) if x not in CHANNELS)
+    if stray:
+        fail(f"apps/: {stray} outside a channel - apps live in apps/native/ or apps/web/")
+    for ch in CHANNELS:
+        for app_id in app_ids(ch):
+            if app_id in seen:
+                fail(f"{app_id}: in both apps/{seen[app_id]}/ and apps/{ch}/ - an id belongs to one channel")
+            seen[app_id] = ch
+            out.append((ch, app_id))
+    return out
+
+
+def pub(ch, *p):
+    return os.path.join(PUBLIC, ch, *p)
+
+
+def pkg_dir(ch, m):
+    return pub(ch, "apps", m["id"], str(m["version_code"]))
 
 
 def cmd_build(args):
-    """Copy each app's payload into public/apps/<id>/<code>/ (only the current version is kept)."""
+    """Copy each app's payload into public/<channel>/apps/<id>/<code>/ (only the current version is kept)."""
+    all_apps()
+    stray = sorted(x for x in (os.listdir(PUBLIC) if os.path.isdir(PUBLIC) else []) if x not in CHANNELS)
+    for x in stray:                                    # the single-catalog layout before the channels
+        full = os.path.join(PUBLIC, x)
+        shutil.rmtree(full) if os.path.isdir(full) else os.remove(full)
+    for ch in CHANNELS:
+        build_channel(ch)
+
+
+def build_channel(ch):
     seen = set()
-    for app_id in app_ids():
-        m = load_manifest(app_id)
-        files = payload_files(app_id)
+    for app_id in app_ids(ch):
+        m = load_manifest(ch, app_id)
+        files = payload_files(ch, app_id)
         cardputer_rules(m, files)
-        dest = pkg_dir(m)
+        dest = pkg_dir(ch, m)
         text = package_text(m, files)
         sig_path = os.path.join(dest, "package.sig")
         if os.path.isfile(sig_path):
@@ -387,7 +473,7 @@ def cmd_build(args):
                 signed_body = f.read().split("--\n")[0]
             if signed_body != text:
                 # Same version code, different bytes: a published version is immutable.
-                fail(f"apps/{app_id}: files changed but version_code {m['version_code']} is already "
+                fail(f"apps/{ch}/{app_id}: files changed but version_code {m['version_code']} is already "
                      "published - raise version_code (and version)")
         else:
             if os.path.isdir(dest):
@@ -399,23 +485,23 @@ def cmd_build(args):
             with open(os.path.join(dest, "package.txt"), "w", encoding="utf-8", newline="\n") as f:
                 f.write(text)   # unsigned until `sign`
         # Older versions of this app leave the site: devices only ever install the newest.
-        root = os.path.join(PUBLIC, "apps", app_id)
+        root = pub(ch, "apps", app_id)
         for old in os.listdir(root):
             if old != str(m["version_code"]):
                 shutil.rmtree(os.path.join(root, old))
         seen.add(app_id)
-    apps_root = os.path.join(PUBLIC, "apps")
+    apps_root = pub(ch, "apps")
     if os.path.isdir(apps_root):
         for gone in set(os.listdir(apps_root)) - seen:
             shutil.rmtree(os.path.join(apps_root, gone))
-    print(f"built {len(seen)} package(s) into public/apps")
+    print(f"{ch}: built {len(seen)} package(s) into public/{ch}/apps")
 
 
 # ── sign ──────────────────────────────────────────────────────────────────────
-def previous_dates():
+def previous_dates(ch):
     """(id, version_code) -> the date that version was first published, from the current catalog."""
     out = {}
-    path = os.path.join(PUBLIC, "index.txt")
+    path = pub(ch, "index.txt")
     if os.path.isfile(path):
         with open(path, encoding="utf-8") as f:
             for line in f:
@@ -429,12 +515,13 @@ def index_line(m, sig_sha, size, updated):
     names = "|".join(m["name"][l] for l in LANGS)
     descs = "|".join(m["description"][l] for l in LANGS)
     fields = ["app", m["id"], m["kind"], str(m["version_code"]), m["version"], m["min_os"], m["category"],
-              str(size), sig_sha, ",".join(m.get("permissions", [])) or "-", names, descs, str(updated), m["author"]]
+              str(size), sig_sha, ",".join(m.get("permissions", [])) or "-", names, descs, str(updated), m["author"],
+              str(m["abi"]) if m["kind"] == "native" else "-"]
     return "\t".join(fields)
 
 
-def read_serial():
-    path = os.path.join(PUBLIC, "index.txt")
+def read_serial(ch):
+    path = pub(ch, "index.txt")
     if os.path.isfile(path):
         with open(path, encoding="utf-8") as f:
             for line in f:
@@ -448,37 +535,44 @@ def cmd_sign(args):
     keys = load_public_keys()
     if key_id(priv.public_key()) not in keys:
         fail("the private key's public half is not in keys/: devices would reject everything it signs")
+    all_apps()
+    for ch in CHANNELS:
+        sign_channel(ch, priv)
+
+
+def sign_channel(ch, priv):
     lines = []
-    dates = previous_dates()
+    dates = previous_dates(ch)
     today = int(time.time()) // 86400 * 86400          # day precision: the catalog does not leak signing times
-    for app_id in app_ids():
-        m = load_manifest(app_id)
-        dest = pkg_dir(m)
+    for app_id in app_ids(ch):
+        m = load_manifest(ch, app_id)
+        dest = pkg_dir(ch, m)
         unsigned = os.path.join(dest, "package.txt")
         sig_path = os.path.join(dest, "package.sig")
         if os.path.isfile(unsigned):
             with open(unsigned, encoding="utf-8") as f:
                 text = f.read()
-            if text != package_text(m, payload_files(app_id)):
-                fail(f"apps/{app_id}: public/ is stale, run build first")
+            if text != package_text(m, payload_files(ch, app_id)):
+                fail(f"apps/{ch}/{app_id}: public/ is stale, run build first")
             with open(sig_path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(text + "--\n" + sign_text(priv, text))
             os.remove(unsigned)
-            print(f"signed {app_id} {m['version']} ({m['version_code']})")
+            print(f"{ch}: signed {app_id} {m['version']} ({m['version_code']})")
         if not os.path.isfile(sig_path):
-            fail(f"apps/{app_id}: no package for version_code {m['version_code']}, run build first")
-        size = sum(os.path.getsize(full) for _, full in payload_files(app_id))
+            fail(f"apps/{ch}/{app_id}: no package for version_code {m['version_code']}, run build first")
+        size = sum(os.path.getsize(full) for _, full in payload_files(ch, app_id))
         updated = dates.get((app_id, str(m["version_code"])), today)
         lines.append(index_line(m, sha256_file(sig_path), size, updated))
-    serial = read_serial() + 1
+    serial = read_serial(ch) + 1
     expires = int(time.time()) + INDEX_TTL_DAYS * 86400
-    text = "\n".join([INDEX_MAGIC, f"serial {serial}", f"expires {expires}", f"apps {len(lines)}"] + lines) + "\n"
-    os.makedirs(PUBLIC, exist_ok=True)
-    with open(os.path.join(PUBLIC, "index.txt"), "w", encoding="utf-8", newline="\n") as f:
+    # The channel is inside the signed text: one channel's catalog can never be served as the other's.
+    text = "\n".join([INDEX_MAGIC, f"channel {ch}", f"serial {serial}", f"expires {expires}", f"apps {len(lines)}"] + lines) + "\n"
+    os.makedirs(pub(ch), exist_ok=True)
+    with open(pub(ch, "index.txt"), "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
-    with open(os.path.join(PUBLIC, "index.sig"), "w", encoding="utf-8", newline="\n") as f:
+    with open(pub(ch, "index.sig"), "w", encoding="utf-8", newline="\n") as f:
         f.write(SIG_MAGIC + "\n" + sign_text(priv, text))
-    print(f"catalog serial {serial}, {len(lines)} app(s), valid until {time.strftime('%Y-%m-%d', time.gmtime(expires))}")
+    print(f"{ch}: catalog serial {serial}, {len(lines)} app(s), valid until {time.strftime('%Y-%m-%d', time.gmtime(expires))}")
 
 
 # ── verify (CI) ───────────────────────────────────────────────────────────────
@@ -497,47 +591,58 @@ def cmd_verify(args):
                 with open(full, "rb") as f:
                     if SECRET_RE.search(f.read()):
                         fail(f"{os.path.relpath(full, ROOT)}: looks like a secret")
-    idx_path, sig_path = os.path.join(PUBLIC, "index.txt"), os.path.join(PUBLIC, "index.sig")
+    all_apps()
+    stray = sorted(x for x in (os.listdir(PUBLIC) if os.path.isdir(PUBLIC) else []) if x not in CHANNELS)
+    if stray:
+        fail(f"public/: {stray} outside a channel - run build")
+    total = 0
+    for ch in CHANNELS:
+        total += verify_channel(ch, keys, args)
+    print(f"ok: {total} app(s) in {len(CHANNELS)} channels, all signatures valid")
+
+
+def verify_channel(ch, keys, args):
+    idx_path, sig_path = pub(ch, "index.txt"), pub(ch, "index.sig")
     if not os.path.isfile(idx_path) or not os.path.isfile(sig_path):
-        fail("public/index.txt or index.sig missing")
+        fail(f"public/{ch}/index.txt or index.sig missing")
     with open(idx_path, encoding="utf-8") as f:
         text = f.read()
     with open(sig_path, encoding="utf-8") as f:
         sig = f.read()
     if not sig.startswith(SIG_MAGIC + "\n"):
-        fail("public/index.sig: wrong magic")
-    verify_text(text, sig[len(SIG_MAGIC) + 1:], keys, "public/index.txt")
+        fail(f"public/{ch}/index.sig: wrong magic")
+    verify_text(text, sig[len(SIG_MAGIC) + 1:], keys, f"public/{ch}/index.txt")
     rows = text.rstrip("\n").split("\n")
-    if rows[0] != INDEX_MAGIC or not rows[1].startswith("serial ") or not rows[2].startswith("expires ") \
-            or not rows[3].startswith("apps "):
-        fail("public/index.txt: bad header")
-    left = (int(rows[2].split()[1]) - time.time()) / 86400
+    if rows[0] != INDEX_MAGIC or rows[1] != f"channel {ch}" or not rows[2].startswith("serial ") \
+            or not rows[3].startswith("expires ") or not rows[4].startswith("apps "):
+        fail(f"public/{ch}/index.txt: bad header (or another channel's catalog)")
+    left = (int(rows[3].split()[1]) - time.time()) / 86400
     if left < 0:
-        fail("public/index.txt has expired: run sign")
+        fail(f"public/{ch}/index.txt has expired: run sign")
     if left < getattr(args, "warn_days", 0):
-        fail(f"public/index.txt expires in {left:.0f} days: run sign and push")
-    apps = rows[4:]
-    if int(rows[3].split()[1]) != len(apps):
-        fail("public/index.txt: app count does not match")
+        fail(f"public/{ch}/index.txt expires in {left:.0f} days: run sign and push")
+    apps = rows[5:]
+    if int(rows[4].split()[1]) != len(apps):
+        fail(f"public/{ch}/index.txt: app count does not match")
     published = set()
     for row in apps:
         f = row.split("\t")
-        if len(f) != 14 or f[0] != "app" or not f[12].isdigit():
-            fail(f"public/index.txt: bad line {row[:40]}")
+        if len(f) != 15 or f[0] != "app" or not f[12].isdigit() or f[2] not in CHANNELS[ch]:
+            fail(f"public/{ch}/index.txt: bad line {row[:40]}")
         app_id, code, sig_sha = f[1], f[3], f[8]
-        m = load_manifest(app_id)
-        cardputer_rules(m, payload_files(app_id))
-        if str(m["version_code"]) != code:
-            fail(f"{app_id}: catalog and manifest disagree on version_code")
-        pdir = pkg_dir(m)
+        m = load_manifest(ch, app_id)
+        cardputer_rules(m, payload_files(ch, app_id))
+        if str(m["version_code"]) != code or f[14] != (str(m["abi"]) if m["kind"] == "native" else "-"):
+            fail(f"{app_id}: catalog and manifest disagree on version_code / abi")
+        pdir = pkg_dir(ch, m)
         psig = os.path.join(pdir, "package.sig")
         if not os.path.isfile(psig) or sha256_file(psig) != sig_sha:
             fail(f"{app_id}: package.sig missing or not the one the catalog names")
         with open(psig, encoding="utf-8") as fh:
             body, _, block = fh.read().partition("--\n")
         verify_text(body, block, keys, f"{app_id}/package.sig")
-        if body != package_text(m, payload_files(app_id)):
-            fail(f"{app_id}: apps/{app_id}/files differs from the signed package - rebuild and sign")
+        if body != package_text(m, payload_files(ch, app_id)):
+            fail(f"{app_id}: apps/{ch}/{app_id}/files differs from the signed package - rebuild and sign")
         # Every listed file is there with its hash; nothing unlisted is published.
         listed = set()
         for line in body.split("\n")[4:]:
@@ -554,9 +659,10 @@ def cmd_verify(args):
                 if rel != "package.sig" and rel not in listed:
                     fail(f"{app_id}/{rel}: published but not signed")
         published.add(app_id)
-    if published != set(app_ids()):
-        fail(f"apps without a catalog entry: {sorted(set(app_ids()) - published)} - run publish")
-    print(f"ok: catalog serial {rows[1].split()[1]}, {len(apps)} app(s), all signatures valid")
+    if published != set(app_ids(ch)):
+        fail(f"{ch}: apps without a catalog entry: {sorted(set(app_ids(ch)) - published)} - run publish")
+    print(f"{ch}: catalog serial {rows[2].split()[1]}, {len(apps)} app(s)")
+    return len(apps)
 
 
 def cmd_firmware_keys(args):

@@ -1,18 +1,26 @@
-# Store format (v1)
+# Store format (v2)
 
 The contract between this repository and the NucleoOS firmware on the M5Stack Cardputer. The
 firmware's store client implements exactly this; `tools/store.py` writes it and `tools/store.py verify`
 checks it. Change both together, and bump the magic strings for any incompatible change.
 
 Everything is plain text, UTF-8 restricted to printable ASCII, `\n` line endings, served over HTTPS
-from GitHub Pages:
+from GitHub Pages, in two **channels** that are two separate stores:
+
+| Channel | Kinds | What |
+|---|---|---|
+| `native` | `native` | apps that run on the Cardputer itself: a `.nap` module loaded from the SD card (NucleoOS `docs/native-apps.md`) |
+| `web` | `web`, `data` | apps the Cardputer serves to a browser, and content packs |
 
 ```
-https://indecenti.github.io/nucleoos-cardputer-store/index.txt
-https://indecenti.github.io/nucleoos-cardputer-store/index.sig
-https://indecenti.github.io/nucleoos-cardputer-store/apps/<id>/<version_code>/package.sig
-https://indecenti.github.io/nucleoos-cardputer-store/apps/<id>/<version_code>/<path>
+https://indecenti.github.io/nucleoos-cardputer-store/<channel>/index.txt
+https://indecenti.github.io/nucleoos-cardputer-store/<channel>/index.sig
+https://indecenti.github.io/nucleoos-cardputer-store/<channel>/apps/<id>/<version_code>/package.sig
+https://indecenti.github.io/nucleoos-cardputer-store/<channel>/apps/<id>/<version_code>/<path>
 ```
+
+The device asks which store to open first and never mixes them. An id belongs to one channel only (both
+install into `/sd/apps/<id>/`). v1 had a single catalog at the root; no released firmware read it.
 
 ## Why text lines
 
@@ -23,20 +31,22 @@ A line is at most 1 KB, so the catalog can grow without limit.
 ## Catalog: `index.txt`
 
 ```
-nucleoos-cardputer-index-v1
+nucleoos-cardputer-index-v2
+channel <native|web>
 serial <n>
 expires <unix seconds>
 apps <count>
-app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions<TAB>updated<TAB>author
+app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions<TAB>updated<TAB>author<TAB>abi
 ...
 ```
 
 | Field | Meaning |
 |---|---|
-| `serial` | Goes up by one at every signing. The device stores the highest it has accepted and **refuses a lower one** (rollback). |
+| `channel` | The channel this catalog belongs to, inside the signed text: the device refuses a catalog whose channel is not the one it asked for, so a validly signed catalog of one store can never be served as the other. Every line's kind must belong to it. |
+| `serial` | Goes up by one at every signing, per channel. The device stores the highest it has accepted and **refuses a lower one** (rollback). |
 | `expires` | The device refuses an expired catalog when it knows the time (freeze attack: an attacker replaying an old, valid catalog). Catalogs are valid for 120 days. |
 | `id` | `[a-z][a-z0-9-]{1,31}`, also the install folder `/sd/apps/<id>/`. |
-| `kind` | `web` (served to the browser from SD), `data` (content only), `native` (a flash-executed game; only firmware that implements it lists these). Unknown kinds are skipped. |
+| `kind` | `native` (native channel), `web` or `data` (web channel). Unknown kinds are skipped. |
 | `version_code` | Positive integer, only ever goes up. Updates compare this, never `version`. |
 | `version` | Human version `x.y.z`. |
 | `min_os` | Lowest NucleoOS version that can run it; older firmware hides the row. |
@@ -47,6 +57,7 @@ app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>siz
 | `names`, `descriptions` | Five values separated by `|`, in the order `it en es fr de`. Names at most 24 characters, descriptions at most 120. |
 | `updated` | Unix time (day precision) this version was first published: the store's "New" tab sorts by it. |
 | `author` | Who made it, at most 40 characters. |
+| `abi` | `native`: the NucleoOS native ABI level the module was built for; the device refuses a level above its own. `-` for other kinds. |
 
 Readers must accept extra fields after these and ignore them: new fields are only ever appended.
 
@@ -88,5 +99,7 @@ The signature covers everything before the `--` line. Paths: up to four segments
    Refuse any file not listed and any path the rules above reject.
 4. Only when everything matches: move the old `/sd/apps/<id>/` aside, rename the new one into place,
    then delete the old one. A failure at any step leaves the installed version untouched.
+5. The verified `package.sig` stays in the app folder as `.package.sig`. A native app is checked against it
+   again (signature and the module's SHA-256) before every load, so a file edited on the card never runs.
 
 Nothing is ever executed or rendered before step 4 completes.
