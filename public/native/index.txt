@@ -1,6 +1,7 @@
 nucleoos-cardputer-index-v2
 channel native
-serial 1
-expires 1803493185
-apps 1
+serial 2
+expires 1803493350
+apps 2
+app	poker	native	1	1.0.0	0.7.5	games	38908	f036f5d90954044e5119d9b6e0edf88b6f03a822445cd5dc4c90d7d280a6835c	audio	Poker|Poker|Poker|Poker|Poker	Video poker a 5 carte: tieni le carte buone, cambia le altre, punta alla scala reale.|5-card draw video poker: hold the good cards, swap the rest, go for the royal flush.|Video poker de 5 cartas: guarda las buenas, cambia el resto, busca la escalera real.|Video poker a 5 cartes : gardez les bonnes, changez les autres, visez la quinte flush royale.|Video-Poker mit 5 Karten: gute Karten halten, den Rest tauschen, auf den Royal Flush zielen.	1793059200	indecenti	1
 app	stelle	native	1	1.0.0	0.7.5	games	106852	4822ca4c54655b3b9a62411eaf8225d8060316a4ed0a280aaa597ae1289bf3f3	audio,imu	Costellazioni|Constellations|Constelaciones|Constellations|Sternbilder	Mercante stellare: commercia tra i sistemi, combatti i pirati, riaccendi i Fari della galassia.|Star trader: trade between systems, fight pirates, relight the Beacons of the galaxy.|Mercader estelar: comercia entre sistemas, lucha contra piratas, reenciende los Faros.|Marchand stellaire : commercez entre les systemes, combattez les pirates, rallumez les Phares.|Sternenhaendler: handle zwischen Systemen, bekaempfe Piraten, entzuende die Leuchtfeuer neu.	1793059200	indecenti	1

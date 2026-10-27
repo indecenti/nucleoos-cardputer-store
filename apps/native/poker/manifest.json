@@ -1,0 +1,39 @@
+{
+  "id": "poker",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 1,
+  "name": {
+    "it": "Poker",
+    "en": "Poker",
+    "es": "Poker",
+    "fr": "Poker",
+    "de": "Poker"
+  },
+  "description": {
+    "it": "Video poker a 5 carte: tieni le carte buone, cambia le altre, punta alla scala reale.",
+    "en": "5-card draw video poker: hold the good cards, swap the rest, go for the royal flush.",
+    "es": "Video poker de 5 cartas: guarda las buenas, cambia el resto, busca la escalera real.",
+    "fr": "Video poker a 5 cartes : gardez les bonnes, changez les autres, visez la quinte flush royale.",
+    "de": "Video-Poker mit 5 Karten: gute Karten halten, den Rest tauschen, auf den Royal Flush zielen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "1c1d60bb2c40fcd3169e20a72262d89509bd4e95",
+    "register": "nucleo_register_poker",
+    "sources": [
+      "firmware/components/nucleo_app/app_poker.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
