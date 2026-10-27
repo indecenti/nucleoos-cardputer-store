@@ -31,7 +31,7 @@
   .p input.name:focus { border-color: var(--acc); background: var(--bg); }
   .score { font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; min-width: 3ch; line-height: 1; }
   .score.neg { color: var(--neg); }
-  .btns { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .btns { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
   .btns button { padding: 10px 0; font-weight: 700; }
   .btns .m { color: #ffb3ab; }
   .badge { font-size: 13px; color: var(--win); font-weight: 700; margin-left: 6px; }
@@ -135,7 +135,7 @@
         score.textContent = p.score;
         const btns = document.createElement('div');
         btns.className = 'btns';
-        for (const d of [-1, 1, 5, 10]) {
+        for (const d of [-5, -1, 1, 5, 10]) {
           const b = document.createElement('button');
           b.textContent = (d > 0 ? '+' : '') + d;
           if (d < 0) b.className = 'm';

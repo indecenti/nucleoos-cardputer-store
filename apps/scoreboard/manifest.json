@@ -1,8 +1,8 @@
 {
   "id": "scoreboard",
   "kind": "web",
-  "version": "1.0.1",
-  "version_code": 2,
+  "version": "1.0.2",
+  "version_code": 3,
   "min_os": "0.7.5",
   "category": "games",
   "name": {
