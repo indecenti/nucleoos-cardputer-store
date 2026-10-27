@@ -1,8 +1,8 @@
 nucleoos-cardputer-pkg-v1
 scoreboard
-1
+2
 web
-be889c713a6cf8b2a872004897f3f695488621a04ebe3b5aaf3fef7aaec4784e 615 manifest.json
+dd6a79f66050ff72979bfabe1440e4ae667e9f880bd2859db636cabc45d3d3c6 654 manifest.json
 59b6709a5f8a09632c605dbb68a26d12ee336414b0f45203b687ef06cfd8e358 470 www/i18n.de.json
 f9610d8946a12a75c0e8808f5712e370b5034d26b3d6ec4511d00a69a3ac3918 436 www/i18n.en.json
 a1081eac4c62f5eb67333704eb18adb8248724c8249a2aa997cf808d1d8743ae 469 www/i18n.es.json
@@ -12,4 +12,4 @@ ed35ade599a0bb351d0dd93e0140ba7ee1e5ba6b9b1462c4d3d2d3ca4f4f6136 539 www/icon.sv
 0836fe19c09346816abac9c4bf68281e336042e2da739a2adfb8d9c57150c6d3 8746 www/index.html
 --
 key 7144a7c1dde55968
-sig MEUCIQC/h/BkO4vF1QITA4IRX5GBR+MzpT8ikEn/o6HnZ70IHwIgM/i+SUZIyqtahHoJA/E56K9byoF4oxWudeyL+jXjC2o=
+sig MEYCIQCkUvZ433OiXvn/GNNjufRINOfkoPnKfAppGz4HWIsdAQIhAMrjgcMYZbtB/xZC4uA9zyuKqJb3a1wlgwMSa+uSAnvR

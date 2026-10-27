@@ -1,11 +1,17 @@
 {
   "id": "scoreboard",
   "kind": "web",
-  "version": "1.0.0",
-  "version_code": 1,
-  "min_os": "0.8.0",
+  "version": "1.0.1",
+  "version_code": 2,
+  "min_os": "0.7.5",
   "category": "games",
-  "name": { "it": "Segnapunti", "en": "Scoreboard", "es": "Marcador", "fr": "Marqueur", "de": "Punktezaehler" },
+  "name": {
+    "it": "Segnapunti",
+    "en": "Scoreboard",
+    "es": "Marcador",
+    "fr": "Marqueur",
+    "de": "Punktezaehler"
+  },
   "description": {
     "it": "Segna i punti di carte e giochi da tavolo: giocatori, +1/-1/+5/+10, annulla, punti per vincere. Offline.",
     "en": "Keep score for card and board games: players, +1/-1/+5/+10, undo, winning score. Works offline.",
