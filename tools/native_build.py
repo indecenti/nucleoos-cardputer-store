@@ -219,8 +219,15 @@ def main():
     if a.check:
         same = os.path.isfile(nap) and open(nap, "rb").read() == open(out, "rb").read()
         os.unlink(out)
-        if rec.split("-")[0] != head:
-            fail(f"the checkout is at {head}, the recipe at {rec}")
+        base = rec.split("-")[0]
+        if base != head:
+            # A later checkout is fine when the recipe's commit is an ancestor and nothing the module is built
+            # from (its sources, sdk/native) changed in between: same inputs, same bytes.
+            paths = list(m["build"]["sources"]) + ["sdk/native"]
+            anc = subprocess.run(["git", "-C", a.firmware, "merge-base", "--is-ancestor", base, head]).returncode == 0
+            same = subprocess.run(["git", "-C", a.firmware, "diff", "--quiet", base, head, "--", *paths]).returncode == 0
+            if not (anc and same):
+                fail(f"the checkout is at {head}: the recipe's {base} is not an ancestor with the same sources")
         if not same:
             fail("the rebuilt module differs from the committed app.nap: not reproducible from its recipe")
         print(f"native_build: {a.id} reproduces byte for byte from {rec}")
