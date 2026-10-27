@@ -1,7 +1,7 @@
 nucleoos-cardputer-index-v2
 channel web
-serial 5
-expires 1803506551
+serial 6
+expires 1803508502
 apps 2
 app	metronome	web	2	1.0.1	0.8.0	media	35818	0d64adde8ca91fa6840372b0166fbcc7db54169db45d2e216788e1eb4dde3b62	mic	Metronomo|Metronome|Metronomo|Metronome|Metronom	Metronomo con tap tempo, accenti e suddivisioni, piu' un accordatore cromatico. Gira nel browser.|Metronome with tap tempo, accents and subdivisions, plus a chromatic tuner. Runs in the browser.|Metronomo con tap tempo, acentos y subdivisiones, y un afinador cromatico. Funciona en el navegador.|Metronome avec tap tempo, accents et subdivisions, plus un accordeur chromatique. Dans le navigateur.|Metronom mit Tap-Tempo, Akzenten und Unterteilungen, dazu ein chromatisches Stimmgeraet. Im Browser.	1793059200	indecenti	-	-
 app	scoreboard	web	4	1.0.3	0.7.5	games	13322	f7ce3bb08464e5120100fb38d2734848cf4d54eeadce83821e0015ad981554e3	-	Segnapunti|Scoreboard|Marcador|Marqueur|Punktezaehler	Segna i punti di carte e giochi da tavolo: giocatori, +1/-1/+5/+10, annulla, punti per vincere. Offline.|Keep score for card and board games: players, +1/-1/+5/+10, undo, winning score. Works offline.|Lleva los puntos de cartas y juegos de mesa: jugadores, +1/-1/+5/+10, deshacer, meta. Sin conexion.|Comptez les points aux cartes et jeux de societe : joueurs, +1/-1/+5/+10, annuler, objectif. Hors ligne.|Punkte fuer Karten- und Brettspiele: Spieler, +1/-1/+5/+10, rueckgaengig, Siegpunkte. Offline.	1793059200	indecenti	-	-

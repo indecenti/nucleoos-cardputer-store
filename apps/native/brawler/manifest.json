@@ -1,0 +1,49 @@
+{
+  "id": "brawler",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Scorribanda",
+    "en": "Brawler",
+    "es": "Pelea callejera",
+    "fr": "Bagarre",
+    "de": "Strassenkampf"
+  },
+  "description": {
+    "it": "Picchiaduro noir a scorrimento: silhouette, combo, nemici e boss. Contro la CPU o in cooperativa.",
+    "en": "Noir side-scrolling brawler: silhouettes, combos, enemies and bosses. Against the CPU or co-op.",
+    "es": "Beat 'em up noir de desplazamiento: siluetas, combos, enemigos y jefes. Contra la CPU o cooperativo.",
+    "fr": "Beat'em all noir a defilement : silhouettes, combos, ennemis et boss. Contre le CPU ou en cooperation.",
+    "de": "Noir-Brawler mit Seitenscrolling: Silhouetten, Combos, Gegner und Bosse. Gegen die CPU oder koop."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "wifi"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "1b1cfd8a7883416a6e442ea2d429723c9a88857b",
+    "register": "nucleo_register_brawler",
+    "sources": [
+      "firmware/components/nucleo_app/app_brawler.cpp",
+      "firmware/components/nucleo_app/brawler_chars.cpp",
+      "firmware/components/nucleo_app/brawler_combat.cpp",
+      "firmware/components/nucleo_app/brawler_enemies.cpp",
+      "firmware/components/nucleo_app/brawler_fx.cpp",
+      "firmware/components/nucleo_app/brawler_levels.cpp",
+      "firmware/components/nucleo_app/brawler_menu.cpp",
+      "firmware/components/nucleo_app/brawler_net.cpp",
+      "firmware/components/nucleo_app/brawler_scene.cpp",
+      "firmware/components/nucleo_app/brawler_sfx.cpp"
+    ],
+    "flags": 1,
+    "ram": 0
+  }
+}

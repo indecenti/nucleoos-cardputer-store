@@ -1,3 +1,3 @@
 nucleoos-cardputer-sig-v1
 key 7144a7c1dde55968
-sig MEUCIFemjHlXWBKXoyVZNe6aNDdY5Ya8d64cdT1Go5kBZAXbAiEA75ax7N1mHgFzQ0SVDToJEqDy6gZN0EviS81CF8O0ipg=
+sig MEQCIFTrvP1+kGdepy5nSrTPQ+zMkrrp9VvcJ1eJ2LII+wAFAiBSGPdr0LPKNfwYbc7jwxwd6baTTOjkgp+o8a1/XNwCjQ==

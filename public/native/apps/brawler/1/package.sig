@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+brawler
+1
+native
+f76ba3b5e250252f1f6df0b2d29904eb718f797e2600a93ae18179b62e7f8021 74100 app.nap
+77fd0de885a2b5cec4af28ecd098a20e0d7d411a0490ea5209b1fb1c289d4353 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIHMe+IWXeo3xVRH5jCUF8U+oAT90bwqZAuk2DE46UcZFAiEA8t7MymxmkBgqq6DV1LG3Q2nPn/WqaRBGdXZru9X037s=
