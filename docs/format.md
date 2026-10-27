@@ -1,7 +1,7 @@
 # Store format (v2)
 
-The contract between this repository and the NucleoOS firmware on the M5Stack Cardputer. The
-firmware's store client implements exactly this; `tools/store.py` writes it and `tools/store.py verify`
+The contract between this repository and its readers: the NucleoOS firmware on the M5Stack Cardputer and
+the store of the shared NucleoOS web OS (nucleo-webos), on every edition. The firmware's store client implements exactly this; `tools/store.py` writes it and `tools/store.py verify`
 checks it. Change both together, and bump the magic strings for any incompatible change.
 
 Everything is plain text, UTF-8 restricted to printable ASCII, `\n` line endings, served over HTTPS
@@ -36,7 +36,7 @@ channel <native|web>
 serial <n>
 expires <unix seconds>
 apps <count>
-app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions<TAB>updated<TAB>author<TAB>abi
+app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions<TAB>updated<TAB>author<TAB>abi<TAB>requires
 ...
 ```
 
@@ -58,6 +58,7 @@ app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>siz
 | `updated` | Unix time (day precision) this version was first published: the store's "New" tab sorts by it. |
 | `author` | Who made it, at most 40 characters. |
 | `abi` | `native`: the NucleoOS native ABI level the module was built for; the device refuses a level above its own. `-` for other kinds. |
+| `requires` | Capabilities the device must have, comma separated, or `-` (the NucleoOS web OS vocabulary, nucleo-webos `contract/capabilities.json`). The web OS store shows a line only on a device that has every one of them; a `native` module always lists `apps.nap`, the Cardputer's native loader. A web app's value must match its `caps.json` in nucleo-webos (`tools/store.py` checks it). Added after `abi`: firmware that reads 15 fields ignores it. |
 
 Readers must accept extra fields after these and ignore them: new fields are only ever appended.
 

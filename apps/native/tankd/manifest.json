@@ -1,0 +1,40 @@
+{
+  "id": "tankd",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Tank Duel",
+    "en": "Tank Duel",
+    "es": "Tank Duel",
+    "fr": "Tank Duel",
+    "de": "Tank Duel"
+  },
+  "description": {
+    "it": "Arena 1v1: mappa 40x40, shop conteso, 4 carri e upgrade. Contro la CPU o in rete.",
+    "en": "1v1 arena: 40x40 map, contested shop, 4 tanks and upgrades. Against the CPU or over the network.",
+    "es": "Arena 1v1: mapa 40x40, tienda disputada, 4 tanques y mejoras. Contra la CPU o en red.",
+    "fr": "Arene 1v1 : carte 40x40, boutique disputee, 4 chars et ameliorations. Contre le CPU ou en reseau.",
+    "de": "1v1-Arena: 40x40-Karte, umkaempfter Shop, 4 Panzer und Upgrades. Gegen die CPU oder im Netz."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "wifi"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "651058aafe354054ebe123f496e8de1886a8335b",
+    "register": "nucleo_register_tankduel",
+    "sources": [
+      "firmware/components/nucleo_app/app_tankduel.cpp"
+    ],
+    "flags": 1,
+    "ram": 0
+  }
+}

@@ -275,7 +275,8 @@ class T(unittest.TestCase):
             t = f.read()
         self.assertIn("channel native\n", t)
         self.assertIn("\tnative\t", t)
-        self.assertTrue(t.rstrip("\n").endswith("\t1"))          # the ABI level, last field
+        # field 15 the ABI level, field 16 the capabilities: a native module always needs the native loader
+        self.assertTrue(t.rstrip("\n").endswith("\t1\tapps.nap"))
         with open(self.s.path("public", "web", "index.txt")) as f:
             w = f.read()
         self.assertIn("channel web\n", w)

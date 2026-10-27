@@ -54,6 +54,13 @@ CATEGORIES = ("games", "tools", "media", "office", "learn", "network", "security
 PERMISSIONS = ("net", "fs", "audio", "mic", "imu", "ir", "ble", "wifi", "gpio", "usb")
 
 ID_RE = re.compile(r"^[a-z][a-z0-9-]{1,31}$")
+# Capabilities an app needs (the NucleoOS web OS vocabulary, nucleo-webos contract/capabilities.json). The
+# web OS store shows an app only on a device that has every one of them; a native module always needs the
+# Cardputer's native loader, `apps.nap`.
+CAP_RE = re.compile(r"^[a-z][a-z0-9-]*(\.[a-z0-9-]+)*$")
+NATIVE_CAP = "apps.nap"
+# nucleo-webos next to this repository: a web app's `requires` must match its caps.json there
+WEBOS_APPS = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "nucleo-webos", "apps")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 PATH_RE = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*){0,3}$")
 TEXT_RE = re.compile(r"^[\x20-\x7e]*$")    # the device fonts are ASCII; no tab, no pipe in fields
@@ -199,7 +206,7 @@ def load_manifest(ch, app_id):
     with open(path, encoding="utf-8") as f:
         m = json.load(f)
     allowed = {"id", "kind", "version", "version_code", "min_os", "category", "name", "description",
-               "author", "license", "source", "permissions", "entry"}
+               "author", "license", "source", "permissions", "entry", "requires"}
     if ch == "native":
         allowed |= {"abi", "build"}
     extra = set(m) - allowed
@@ -239,6 +246,16 @@ def load_manifest(ch, app_id):
     perms = m.get("permissions", [])
     if not isinstance(perms, list) or any(p not in PERMISSIONS for p in perms) or len(set(perms)) != len(perms):
         fail(f"{where}: permissions must be distinct values from {PERMISSIONS}")
+    req = m.get("requires", [])
+    if not isinstance(req, list) or len(req) > 16 or len(set(req)) != len(req) or \
+            not all(isinstance(c, str) and CAP_RE.match(c) for c in req):
+        fail(f"{where}: requires must be distinct capability names (nucleo-webos contract/capabilities.json)")
+    caps_json = os.path.join(WEBOS_APPS, app_id, "caps.json")
+    if ch == "web" and os.path.isfile(caps_json):
+        with open(caps_json, encoding="utf-8") as fh:
+            want = json.load(fh).get("requires", [])
+        if sorted(req) != sorted(want):
+            fail(f"{where}: requires {sorted(req)} differs from nucleo-webos apps/{app_id}/caps.json {sorted(want)}")
     if "entry" in m and (not isinstance(m["entry"], str) or not PATH_RE.match(m["entry"])):
         fail(f"{where}: entry must be a relative path inside files/")
     return m
@@ -516,8 +533,16 @@ def index_line(m, sig_sha, size, updated):
     descs = "|".join(m["description"][l] for l in LANGS)
     fields = ["app", m["id"], m["kind"], str(m["version_code"]), m["version"], m["min_os"], m["category"],
               str(size), sig_sha, ",".join(m.get("permissions", [])) or "-", names, descs, str(updated), m["author"],
-              str(m["abi"]) if m["kind"] == "native" else "-"]
+              str(m["abi"]) if m["kind"] == "native" else "-", ",".join(requires_of(m)) or "-"]
     return "\t".join(fields)
+
+
+def requires_of(m):
+    """The capabilities a device needs for this app, sorted; a native module also needs the native loader."""
+    req = set(m.get("requires", []))
+    if m["kind"] == "native":
+        req.add(NATIVE_CAP)
+    return sorted(req)
 
 
 def read_serial(ch):
@@ -627,13 +652,16 @@ def verify_channel(ch, keys, args):
     published = set()
     for row in apps:
         f = row.split("\t")
-        if len(f) != 15 or f[0] != "app" or not f[12].isdigit() or f[2] not in CHANNELS[ch]:
+        # 15 fields until the catalog is signed again with `requires` (field 16): readers ignore extra fields
+        if len(f) not in (15, 16) or f[0] != "app" or not f[12].isdigit() or f[2] not in CHANNELS[ch]:
             fail(f"public/{ch}/index.txt: bad line {row[:40]}")
         app_id, code, sig_sha = f[1], f[3], f[8]
         m = load_manifest(ch, app_id)
         cardputer_rules(m, payload_files(ch, app_id))
         if str(m["version_code"]) != code or f[14] != (str(m["abi"]) if m["kind"] == "native" else "-"):
             fail(f"{app_id}: catalog and manifest disagree on version_code / abi")
+        if len(f) == 16 and f[15] != (",".join(requires_of(m)) or "-"):
+            fail(f"{app_id}: catalog and manifest disagree on requires")
         pdir = pkg_dir(ch, m)
         psig = os.path.join(pdir, "package.sig")
         if not os.path.isfile(psig) or sha256_file(psig) != sig_sha:
