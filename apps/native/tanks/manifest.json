@@ -1,0 +1,39 @@
+{
+  "id": "tanks",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 1,
+  "name": {
+    "it": "Tanks",
+    "en": "Tanks",
+    "es": "Tanks",
+    "fr": "Tanks",
+    "de": "Tanks"
+  },
+  "description": {
+    "it": "Artiglieria a turni: terreno distruttibile, vento, 29 armi, scudi e biomi. Contro la CPU o in due.",
+    "en": "Turn-based artillery: destructible terrain, wind, 29 weapons, shields and biomes. Against the CPU or two players.",
+    "es": "Artilleria por turnos: terreno destructible, viento, 29 armas, escudos y biomas. Contra la CPU o a dos.",
+    "fr": "Artillerie au tour par tour : terrain destructible, vent, 29 armes, boucliers. Contre le CPU ou a deux.",
+    "de": "Rundenbasierte Artillerie: zerstoerbares Gelaende, Wind, 29 Waffen, Schilde. Gegen die CPU oder zu zweit."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "670705ffe3fe620503b3405876b078c25b4e3380",
+    "register": "nucleo_register_tanks",
+    "sources": [
+      "firmware/components/nucleo_app/app_tanks.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

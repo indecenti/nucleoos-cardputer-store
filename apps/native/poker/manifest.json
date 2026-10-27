@@ -28,7 +28,7 @@
   ],
   "build": {
     "repo": "indecenti/NucleoOs",
-    "commit": "1c1d60bb2c40fcd3169e20a72262d89509bd4e95",
+    "commit": "670705ffe3fe620503b3405876b078c25b4e3380",
     "register": "nucleo_register_poker",
     "sources": [
       "firmware/components/nucleo_app/app_poker.cpp"
