@@ -1,0 +1,39 @@
+{
+  "id": "pinball",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Flipper",
+    "en": "Pinball",
+    "es": "Pinball",
+    "fr": "Flipper",
+    "de": "Flipper"
+  },
+  "description": {
+    "it": "Flipper verticale: tieni la Cardputer in verticale, bumper, rampe e record da battere.",
+    "en": "Portrait pinball: hold the Cardputer upright, bumpers, ramps and a high score to beat.",
+    "es": "Pinball vertical: sujeta la Cardputer en vertical, bumpers, rampas y record que batir.",
+    "fr": "Flipper vertical : tenez la Cardputer debout, bumpers, rampes et record a battre.",
+    "de": "Hochkant-Flipper: Cardputer aufrecht halten, Bumper, Rampen und Rekord zum Schlagen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "a0696316e79fb776f4fee5beb487cda9ee0315d2",
+    "register": "nucleo_register_pinball",
+    "sources": [
+      "firmware/components/nucleo_app/app_pinball.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

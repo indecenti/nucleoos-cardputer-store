@@ -1,0 +1,40 @@
+{
+  "id": "cardler",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Cardler",
+    "en": "Cardler",
+    "es": "Cardler",
+    "fr": "Cardler",
+    "de": "Cardler"
+  },
+  "description": {
+    "it": "Mini GDR: esplora il villaggio, parla con gli abitanti, raccogli oggetti e completa le missioni.",
+    "en": "Mini RPG: explore the village, talk to the people, collect items and complete the quests.",
+    "es": "Mini RPG: explora la aldea, habla con la gente, recoge objetos y completa misiones.",
+    "fr": "Mini RPG : explorez le village, parlez aux habitants, ramassez des objets, finissez les quetes.",
+    "de": "Mini-RPG: Dorf erkunden, mit Leuten reden, Gegenstaende sammeln und Quests erfuellen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "imu"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "a0696316e79fb776f4fee5beb487cda9ee0315d2",
+    "register": "nucleo_register_cardler",
+    "sources": [
+      "firmware/components/nucleo_app/app_cardler.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

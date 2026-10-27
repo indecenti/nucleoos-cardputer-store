@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+cardler
+1
+native
+66a2698676eeba14d663a1f1a6657cf4d2a9d34dee2c75a6728b2743284cbcc2 49964 app.nap
+682d5d44c861139d536aab2b36c76376cf32cf35fd59b5f101c58c4b29f89249 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIQDzOBdAu6ZkeWXWJ6jfl+ySvJJuidkWdiCpY5FmwFOQuQIgOx/hTvG3pVaeC9gpBtoFxhgBIw3ocqxLWROW9gHvRQ0=
