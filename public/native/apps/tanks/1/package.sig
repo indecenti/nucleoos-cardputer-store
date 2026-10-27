@@ -1,9 +1,0 @@
-nucleoos-cardputer-pkg-v1
-tanks
-1
-native
-0ede96a4e0cee2d0d3914994fcb2e4f74478c9d6f0e6336c88723fbfe1954b43 96344 app.nap
-96969a0ac6bcd21e27b307939a19fd1b7a448b18b3b3b4108439ad4581bf93c0 1056 device-icon.txt
---
-key 7144a7c1dde55968
-sig MEYCIQDXtVt+r8oHRP/JACyIIQxhOAolPVkz20Sl+yeDRRJ5rwIhAM68yWy4UpFP1b2k5WgfiKn7HaQsjMiFeDd9YcbB2b8g

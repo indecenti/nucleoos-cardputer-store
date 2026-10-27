@@ -1,11 +1,11 @@
 {
   "id": "tanks",
   "kind": "native",
-  "version": "1.0.0",
-  "version_code": 1,
+  "version": "1.1.0",
+  "version_code": 2,
   "min_os": "0.7.5",
   "category": "games",
-  "abi": 1,
+  "abi": 2,
   "name": {
     "it": "Tanks",
     "en": "Tanks",
@@ -28,7 +28,7 @@
   ],
   "build": {
     "repo": "indecenti/NucleoOs",
-    "commit": "670705ffe3fe620503b3405876b078c25b4e3380",
+    "commit": "6b33ce3445d32a54ba4b501a585eae0ebac5325b",
     "register": "nucleo_register_tanks",
     "sources": [
       "firmware/components/nucleo_app/app_tanks.cpp"

@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+poker
+2
+native
+d295ab5155f12ff6519102be9339fd0979c058db30e441d5fd427be59081b714 40352 app.nap
+f7d2cdd3b8fd1c97d1d362789e9fafd4fffb4dbb8e1921632c0006a8232dbe89 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIFgYFqULUE/go5DWN1z1yh5Umz0uaHoecQlMbwCLoDRqAiEA2NamazD12KN5JRIDK72tUtG6euBD0LOgAY9DQ+MK3JQ=
