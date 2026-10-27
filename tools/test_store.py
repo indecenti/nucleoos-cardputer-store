@@ -17,6 +17,19 @@ TOOL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "store.py")
 LANGS = ("it", "en", "es", "fr", "de")
 
 
+def device_icon(seed):
+    """A valid 32x32 pixel icon, different for every seed: a frame plus the seed's bits."""
+    h = abs(hash(seed)) | 1
+    rows = []
+    for y in range(32):
+        row = ""
+        for x in range(32):
+            on = x in (0, 31) or y in (0, 31) or (8 <= x < 24 and 8 <= y < 24 and (h >> ((x + y * 3) % 60)) & 1)
+            row += "#" if on else "."
+        rows.append(row)
+    return ("\n".join(rows) + "\n").encode()
+
+
 def manifest(app_id, code=1, **over):
     m = {"id": app_id, "kind": "web", "version": f"1.0.{code}", "version_code": code, "min_os": "0.7.0",
          "category": "tools", "name": {l: "Demo" for l in LANGS}, "description": {l: "A demo app" for l in LANGS},
@@ -59,6 +72,7 @@ class Store:
                 "www/icon.svg": (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12"/>'
                                  f'<circle cx="32" cy="32" r="12"/><text x="8" y="60">{app_id}</text></svg>').encode(),
                 **{f"www/i18n.{l}.json": json.dumps({"_lang": l, "t": "x"}).encode() for l in LANGS},
+                "device-icon.txt": device_icon(app_id),
             }
         base.update(files)
         files = {k: v for k, v in base.items() if v is not None}
@@ -193,6 +207,16 @@ class T(unittest.TestCase):
         self.s.app("two", {"www/icon.svg": same})
         code, out = self.s.run("build")
         self.assertIn("same drawing", out)
+
+    def test_rule_device_icon(self):
+        self.refused({"device-icon.txt": None}, "no device icon")
+        self.refused({"device-icon.txt": b"#" * 32 + b"\n"}, "one line")
+        self.refused({"device-icon.txt": (("." * 32 + "\n") * 32).encode()}, "blank icon")
+        self.refused({"device-icon.txt": (("#" * 32 + "\n") * 32).encode()}, "solid block")
+        shutil.rmtree(self.s.path("apps"), ignore_errors=True)
+        self.s.app("one", {"device-icon.txt": device_icon("same")})
+        self.s.app("two", {"device-icon.txt": device_icon("same")})
+        self.assertIn("same drawing", self.s.run("build")[1])
 
     def test_rule_offline_and_no_code_from_strings(self):
         self.refused({"www/index.html": b"<script src='https://cdn.example.org/x.js'></script>"}, "remote script")

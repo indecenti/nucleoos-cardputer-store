@@ -267,9 +267,34 @@ def rule_fail(app_id, msg):
     fail(f"apps/{app_id}: Cardputer rule: {msg}")
 
 
+DEVICE_ICON = "device-icon.txt"    # 32 x 32 pixel art for the Cardputer launcher: '#' on, '.' off
+
+
+def device_icon_bits(path):
+    """The 32 lines of a device icon, or None when it is not exactly 32 x 32 of '#' and '.'."""
+    with open(path, encoding="ascii", errors="replace") as f:
+        rows = [r.rstrip(chr(13)) for r in f.read().strip(chr(13) + chr(10)).split(chr(10))]
+    if len(rows) != 32 or any(len(r) != 32 or set(r) - {"#", "."} for r in rows):
+        return None
+    return rows
+
+
 def cardputer_rules(m, files):
     app_id = m["id"]
     rel = {r: full for r, full in files}
+    # Every app, whatever its kind, has its own pixel icon for the Cardputer launcher.
+    if DEVICE_ICON not in rel:
+        rule_fail(app_id, f"files/{DEVICE_ICON} is missing: the launcher icon, 32 x 32 pixels of '#' and '.'")
+    bits = device_icon_bits(rel[DEVICE_ICON])
+    if bits is None:
+        rule_fail(app_id, f"files/{DEVICE_ICON} must be exactly 32 lines of 32 '#' or '.' characters")
+    on = sum(r.count("#") for r in bits)
+    if on < 60 or on > 32 * 32 - 60:
+        rule_fail(app_id, f"files/{DEVICE_ICON} has {on} pixels on: draw an icon, not a blank or a block")
+    for other in app_ids():
+        o = os.path.join(APPS, other, "files", DEVICE_ICON)
+        if other != app_id and os.path.isfile(o) and device_icon_bits(o) == bits:
+            rule_fail(app_id, f"files/{DEVICE_ICON} is the same drawing as {other}'s")
     total = sum(os.path.getsize(full) for full in rel.values())
     for r, full in files:
         if r.lower().endswith(TEXT_EXT):

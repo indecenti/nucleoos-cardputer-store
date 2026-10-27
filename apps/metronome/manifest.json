@@ -1,8 +1,8 @@
 {
   "id": "metronome",
   "kind": "web",
-  "version": "1.0.0",
-  "version_code": 1,
+  "version": "1.0.1",
+  "version_code": 2,
   "min_os": "0.8.0",
   "category": "media",
   "name": {
@@ -22,5 +22,7 @@
   "author": "indecenti",
   "license": "PolyForm-Noncommercial-1.0.0",
   "source": "https://github.com/indecenti/NucleoOs/tree/main/apps/metronome",
-  "permissions": ["mic"]
+  "permissions": [
+    "mic"
+  ]
 }

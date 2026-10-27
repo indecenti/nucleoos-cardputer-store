@@ -14,6 +14,9 @@ repository reaches a device until the maintainer has reviewed it, built it and s
 - **Its own drawn icon.** A web app ships `www/icon.svg`, referenced by its `manifest.json` as
   `"icon": "icon.svg"`: a square `viewBox`, at most 16 KB, plain drawing only (no scripts, event
   handlers, `javascript:` or external links), and not the same drawing as any other app.
+- **Its own launcher icon on the Cardputer**: `files/device-icon.txt`, 32 lines of 32 characters, `#` for
+  a lit pixel and `.` for an unlit one, hand-drawn pixel art that the launcher paints in the app's colour.
+  Not blank, not a solid block, not the same drawing as another app's.
 - **Five languages**: `it`, `en`, `es`, `fr`, `de`, in the store manifest and, for a web app, as
   `www/i18n.<lang>.json` catalogs with the same keys. Store names and descriptions are printable ASCII
   (the device fonts have no accents): at most 24 and 120 characters.

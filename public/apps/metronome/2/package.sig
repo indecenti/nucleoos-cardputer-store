@@ -1,9 +1,10 @@
 nucleoos-cardputer-pkg-v1
 metronome
-1
+2
 web
-63aa9f37002aa15f469956549cddbd0cd082414fc4ada3c57e026cd7a108bba6 694 manifest.json
-ce280abb9b4b08b6eb22a28d81081f744d3438da0b2ed6c50310c5c47d733262 392 manifest.json.gz
+d50c2d5cf0e1f37caf567c21ed41f8c9201859afb45e3887a3c770ef500df5d3 1056 device-icon.txt
+2abb7688d40d5db3a23614791d4e7f78654c14202ddf26816cf5244080eb7b7f 732 manifest.json
+ba6d3bfc8cd9a3375792b8c8a519b91ecf74ceca40aebb9ede2236cfadc2195f 401 manifest.json.gz
 c65f6c7bba962cb17b22d4899cf31272e64f13dfdf606d2c7189e06c4dfe83ae 8441 www/app.js
 891e321f240d174851b914c4db720cedbe7ecfb28254f023e4decd3d86d7861c 3266 www/app.js.gz
 d347a19ff8518f2bb55f80c4f3c6b444f667799f4a29a6c8bf89fb0a18d67b0a 559 www/i18n.de.json
@@ -22,4 +23,4 @@ e9e8a0d4bdded555b78eb1b598b5c6265baf2b2e4a7bf3796a801e69bcb3c33d 297 www/i18n.fr
 045cc55f97c3bda4f7cc47fa5652df3a502846da263e7c78f79d7fb7d4af50a6 4236 www/index.html.gz
 --
 key 7144a7c1dde55968
-sig MEUCIQDKuD5qEkszLbjd0gnLsLcO2mQrAERhOq7IzzsRj0wNYAIgG0461X4wKMcvK7GvpfahV7jxuMWnti4mZ6acURQzPjE=
+sig MEQCIF9qpkbCBWW7rcue9z2CpF9S0gfJIXdJs4jiJLM9fIjqAiAjs0KQGs43eBr2E6O/gA++mkdLU7BSzTll/gBVGAOaHQ==
