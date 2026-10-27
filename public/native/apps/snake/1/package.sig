@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+snake
+1
+native
+84682a74fc10de176021d51fd5909732112f65fb722cc93e4a720b0b35126e09 43464 app.nap
+88b4850c108f8192aa2462a1923876dd1c655f8017c1425182eb3dd870422623 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEYCIQDVZ5DeZrbw+NwCdns92GjWltNtKKZ9USemxkGmOLgoCAIhANOo6lV/TTZ9+Fu4sD709eyBYJueI40Coeizfen5SMl2

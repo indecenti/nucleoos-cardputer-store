@@ -1,0 +1,39 @@
+{
+  "id": "giardino",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Giardino",
+    "en": "Garden",
+    "es": "Jardin",
+    "fr": "Jardin",
+    "de": "Garten"
+  },
+  "description": {
+    "it": "Unisci le piante uguali e falle crescere fino all'albero d'oro. Rilassante, senza fretta.",
+    "en": "Merge matching plants and grow them up to the golden tree. Relaxing, no rush.",
+    "es": "Une plantas iguales y hazlas crecer hasta el arbol de oro. Relajante, sin prisa.",
+    "fr": "Fusionnez les plantes identiques jusqu'a l'arbre d'or. Relaxant, sans hate.",
+    "de": "Gleiche Pflanzen verbinden und bis zum goldenen Baum wachsen lassen. Entspannt, ohne Eile."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "29366d27ca62537e9e72a34815a3e3d5ff781be9",
+    "register": "nucleo_register_sandgarden",
+    "sources": [
+      "firmware/components/nucleo_app/app_sandgarden.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

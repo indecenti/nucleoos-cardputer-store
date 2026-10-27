@@ -1,0 +1,39 @@
+{
+  "id": "reactor",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Reattore",
+    "en": "Reactor",
+    "es": "Reactor",
+    "fr": "Reacteur",
+    "de": "Reaktor"
+  },
+  "description": {
+    "it": "Tieni la potenza del reattore senza arrivare alla fusione: barre, raffreddamento e allarmi.",
+    "en": "Keep the reactor's power up without a meltdown: rods, cooling and alarms.",
+    "es": "Manten la potencia del reactor sin llegar a la fusion: barras, refrigeracion y alarmas.",
+    "fr": "Gardez la puissance du reacteur sans fusion : barres, refroidissement et alarmes.",
+    "de": "Halte die Reaktorleistung ohne Kernschmelze: Steuerstaebe, Kuehlung und Alarme."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "29366d27ca62537e9e72a34815a3e3d5ff781be9",
+    "register": "nucleo_register_reactor",
+    "sources": [
+      "firmware/components/nucleo_app/app_reactor.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

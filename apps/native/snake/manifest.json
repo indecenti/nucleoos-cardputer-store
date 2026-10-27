@@ -1,0 +1,40 @@
+{
+  "id": "snake",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Snake",
+    "en": "Snake",
+    "es": "Snake",
+    "fr": "Snake",
+    "de": "Snake"
+  },
+  "description": {
+    "it": "Il serpente: contro l'IA o 1v1 con un'altra Cardputer via ESP-NOW. Mangia, cresci, non morderti.",
+    "en": "Snake: against the AI or 1v1 with another Cardputer over ESP-NOW. Eat, grow, don't bite yourself.",
+    "es": "Snake: contra la IA o 1v1 con otra Cardputer por ESP-NOW. Come, crece, no te muerdas.",
+    "fr": "Snake : contre l'IA ou en 1v1 avec une autre Cardputer via ESP-NOW. Mangez, grandissez.",
+    "de": "Snake: gegen die KI oder 1v1 mit einem zweiten Cardputer per ESP-NOW. Fressen, wachsen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "wifi"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "29366d27ca62537e9e72a34815a3e3d5ff781be9",
+    "register": "nucleo_register_snake",
+    "sources": [
+      "firmware/components/nucleo_app/app_snake.cpp"
+    ],
+    "flags": 1,
+    "ram": 0
+  }
+}

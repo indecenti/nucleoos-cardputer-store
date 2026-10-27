@@ -1,0 +1,39 @@
+{
+  "id": "slots",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Slot",
+    "en": "Slots",
+    "es": "Tragaperras",
+    "fr": "Machine a sous",
+    "de": "Spielautomat"
+  },
+  "description": {
+    "it": "Slot machine: tre rulli, combinazioni e jackpot. Gira e vinci, senza soldi veri.",
+    "en": "Slot machine: three reels, combinations and a jackpot. Spin and win, no real money.",
+    "es": "Tragaperras: tres rodillos, combinaciones y bote. Gira y gana, sin dinero real.",
+    "fr": "Machine a sous : trois rouleaux, combinaisons et jackpot. Tournez et gagnez, sans argent reel.",
+    "de": "Spielautomat: drei Walzen, Kombinationen und Jackpot. Drehen und gewinnen, ohne echtes Geld."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "29366d27ca62537e9e72a34815a3e3d5ff781be9",
+    "register": "nucleo_register_slots",
+    "sources": [
+      "firmware/components/nucleo_app/app_slots.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
