@@ -247,6 +247,88 @@ def payload_files(app_id):
     return out
 
 
+# ── Cardputer rules (docs/rules.md) ───────────────────────────────────────────
+# Every app is checked against these when it is built AND when CI verifies the published tree: an app that
+# breaks one never gets a package, whoever wrote it.
+MAX_WEB_PACKAGE = 2 * 1024 * 1024          # a web app is served from SD to a browser: keep it small
+MAX_ICON = 16 * 1024
+TEXT_EXT = (".html", ".htm", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".md")
+# Nothing may come from the Internet: a store app works offline and cannot pull unreviewed code.
+REMOTE_RE = re.compile(rb"""(?:\b(?:src|href|action|poster|data)\s*=\s*["']?\s*(?:https?:)?//)"""
+                       rb"""|(?:\bfrom\s*["'](?:https?:)?//)|(?:\bimport\s*\(\s*["'](?:https?:)?//)"""
+                       rb"""|(?:url\(\s*["']?(?:https?:)?//)|(?:@import\s+["']?(?:https?:)?//)"""
+                       rb"""|(?:\b(?:fetch|EventSource|WebSocket|importScripts)\s*\(\s*["'`](?:https?|wss?):)""", re.I)
+UNSAFE_RE = re.compile(rb"\beval\s*\(|\bnew\s+Function\s*\(|document\.write\s*\(|\bsetTimeout\s*\(\s*[\"'`]|\bsetInterval\s*\(\s*[\"'`]")
+SVG_BAD_RE = re.compile(rb"<script|\bon[a-z]+\s*=|javascript:|<foreignObject|xlink:href\s*=\s*[\"'](?!#)|\bhref\s*=\s*[\"'](?!#)", re.I)
+VIEWBOX_RE = re.compile(rb"""viewBox\s*=\s*["']\s*0\s+0\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s*["']""")
+
+
+def rule_fail(app_id, msg):
+    fail(f"apps/{app_id}: Cardputer rule: {msg}")
+
+
+def cardputer_rules(m, files):
+    app_id = m["id"]
+    rel = {r: full for r, full in files}
+    total = sum(os.path.getsize(full) for full in rel.values())
+    for r, full in files:
+        if r.lower().endswith(TEXT_EXT):
+            with open(full, "rb") as f:
+                data = f.read()
+            try:
+                data.decode("utf-8")
+            except UnicodeDecodeError:
+                rule_fail(app_id, f"{r} is not UTF-8")
+            hit = REMOTE_RE.search(data)
+            if hit:
+                rule_fail(app_id, f"{r} loads something from the Internet ({hit.group(0)[:40]!r}): store apps work offline")
+            if not r.endswith((".json", ".svg", ".txt", ".md")) and UNSAFE_RE.search(data):
+                rule_fail(app_id, f"{r} runs code from strings (eval / new Function / document.write / string timers)")
+    if m["kind"] == "web":
+        if total > MAX_WEB_PACKAGE:
+            rule_fail(app_id, f"web apps are at most {MAX_WEB_PACKAGE} B ({total} B)")
+        for need in ("manifest.json", "www/index.html", "www/icon.svg"):
+            if need not in rel:
+                rule_fail(app_id, f"a web app needs files/{need}")
+        with open(rel["manifest.json"], encoding="utf-8") as f:
+            am = json.load(f)
+        if am.get("id") != app_id or am.get("runtime") != "web" or am.get("web_route") != f"/apps/{app_id}/":
+            rule_fail(app_id, f"files/manifest.json must say id {app_id}, runtime web, web_route /apps/{app_id}/")
+        if am.get("icon") != "icon.svg":
+            rule_fail(app_id, 'files/manifest.json must use its own drawn icon: "icon": "icon.svg"')
+        if am.get("version") != m["version"]:
+            rule_fail(app_id, "files/manifest.json version differs from the store manifest")
+        # Its own icon: a square, self-contained SVG drawn for this app (not another app's).
+        icon = rel["www/icon.svg"]
+        with open(icon, "rb") as f:
+            svg = f.read()
+        if len(svg) > MAX_ICON or not svg.lstrip().startswith(b"<svg"):
+            rule_fail(app_id, f"www/icon.svg must be an SVG of at most {MAX_ICON} B")
+        vb = VIEWBOX_RE.search(svg)
+        if not vb or vb.group(1) != vb.group(2):
+            rule_fail(app_id, 'www/icon.svg needs a square viewBox="0 0 N N"')
+        if SVG_BAD_RE.search(svg):
+            rule_fail(app_id, "www/icon.svg must be plain drawing: no scripts, event handlers or external links")
+        if svg.count(b"<") < 4:
+            rule_fail(app_id, "www/icon.svg is too bare to be a drawn icon")
+        for other in app_ids():
+            o = os.path.join(APPS, other, "files", "www", "icon.svg")
+            if other != app_id and os.path.isfile(o) and sha256_file(o) == sha256_file(icon):
+                rule_fail(app_id, f"www/icon.svg is the same drawing as {other}'s: every app has its own icon")
+        # Every language, with the same keys.
+        keys = None
+        for lang in LANGS:
+            p = f"www/i18n.{lang}.json"
+            if p not in rel:
+                rule_fail(app_id, f"files/{p} is missing: every app speaks it, en, es, fr, de")
+            with open(rel[p], encoding="utf-8") as f:
+                cat = {k for k in json.load(f) if not k.startswith("_")}
+            if keys is None:
+                keys = cat
+            elif cat != keys:
+                rule_fail(app_id, f"files/{p} has different keys from the others: {sorted(cat ^ keys)[:5]}")
+
+
 def package_text(m, files):
     """The exact signed text of a package (docs/format.md)."""
     lines = [PKG_MAGIC, m["id"], str(m["version_code"]), m["kind"]]
@@ -271,6 +353,7 @@ def cmd_build(args):
     for app_id in app_ids():
         m = load_manifest(app_id)
         files = payload_files(app_id)
+        cardputer_rules(m, files)
         dest = pkg_dir(m)
         text = package_text(m, files)
         sig_path = os.path.join(dest, "package.sig")
@@ -418,6 +501,7 @@ def cmd_verify(args):
             fail(f"public/index.txt: bad line {row[:40]}")
         app_id, code, sig_sha = f[1], f[3], f[8]
         m = load_manifest(app_id)
+        cardputer_rules(m, payload_files(app_id))
         if str(m["version_code"]) != code:
             fail(f"{app_id}: catalog and manifest disagree on version_code")
         pdir = pkg_dir(m)

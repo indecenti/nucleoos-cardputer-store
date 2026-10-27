@@ -21,6 +21,7 @@ keys/                       the public keys the firmware trusts (main + backup)
 tools/store.py              build, sign, verify (see below)
 tools/test_store.py         security tests: tampering, rollback, foreign keys, bad paths
 docs/format.md              the catalog and package format - the contract with the firmware
+docs/rules.md               the rules every app follows (enforced by tools/store.py)
 schemas/                    JSON Schema of manifest.json (for editors; store.py enforces the same rules)
 ```
 
@@ -47,9 +48,12 @@ First-time setup: `python tools/store.py keygen` and `python tools/store.py keyg
 the two public keys in `keys/`, move the backup private key offline. Private keys live in
 `~/.nucleo/` and must never be committed (CI refuses anything that looks like one).
 
-## Submitting an app
+## Who can publish
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
+Only the maintainer: every package is signed with an offline key after its source has been reviewed, and
+the device installs nothing else. Submissions are not accepted (CONTRIBUTING.md). The rules every app
+follows - its own icon, five languages, offline, small - are in [docs/rules.md](docs/rules.md) and are
+enforced by the tools. Security: [SECURITY.md](SECURITY.md).
 
 ## License
 

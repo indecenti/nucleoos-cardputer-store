@@ -42,11 +42,26 @@ class Store:
         assert code == 0, out
         return out
 
-    def app(self, app_id, files, **over):
+    def app(self, app_id, files, scaffold=True, **over):
+        """A web app that passes every Cardputer rule, with `files` added or replacing (None = remove)."""
         d = os.path.join(self.dir, "apps", app_id)
+        shutil.rmtree(os.path.join(d, "files"), ignore_errors=True)
         os.makedirs(os.path.join(d, "files"), exist_ok=True)
+        m = manifest(app_id, **over)
         with open(os.path.join(d, "manifest.json"), "w") as f:
-            json.dump(manifest(app_id, **over), f)
+            json.dump(m, f)
+        base = {}
+        if scaffold:
+            base = {
+                "manifest.json": json.dumps({"id": app_id, "runtime": "web", "web_route": f"/apps/{app_id}/",
+                                             "icon": "icon.svg", "version": m.get("version", "1.0.1")}).encode(),
+                "www/index.html": b"<h1 data-i18n='t'>t</h1>",
+                "www/icon.svg": (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12"/>'
+                                 f'<circle cx="32" cy="32" r="12"/><text x="8" y="60">{app_id}</text></svg>').encode(),
+                **{f"www/i18n.{l}.json": json.dumps({"_lang": l, "t": "x"}).encode() for l in LANGS},
+            }
+        base.update(files)
+        files = {k: v for k, v in base.items() if v is not None}
         for rel, data in files.items():
             p = os.path.join(d, "files", rel)
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -156,6 +171,43 @@ class T(unittest.TestCase):
             shutil.rmtree(self.s.path("apps"), ignore_errors=True)
             self.s.app("demo", {"a": b"1"}, **over)
             self.assertNotEqual(self.s.run("build")[0], 0, over)
+
+    # ── Cardputer rules ──
+    def refused(self, files, why, app_id="demo", **over):
+        shutil.rmtree(self.s.path("apps"), ignore_errors=True)
+        self.s.app(app_id, files, **over)
+        code, out = self.s.run("build")
+        self.assertNotEqual(code, 0, f"accepted: {why}")
+        self.assertIn("Cardputer rule", out, out)
+
+    def test_rule_icon_is_required_and_its_own(self):
+        self.refused({"www/icon.svg": None}, "no icon")
+        self.refused({"www/icon.svg": b"<svg viewBox='0 0 64 32'><rect/><rect/><rect/></svg>"}, "not square")
+        self.refused({"www/icon.svg": b"<svg viewBox='0 0 64 64'><script>x()</script><rect/><rect/></svg>"}, "script in icon")
+        self.refused({"www/icon.svg": b"<svg viewBox='0 0 64 64' onload='x()'><rect/><rect/><rect/></svg>"}, "handler in icon")
+        self.refused({"www/icon.svg": b"<svg viewBox='0 0 64 64'><image href='https://x/y.png'/><rect/><rect/></svg>"}, "remote image")
+        self.refused({"www/icon.svg": b"<svg viewBox='0 0 64 64'></svg>"}, "empty icon")
+        shutil.rmtree(self.s.path("apps"), ignore_errors=True)
+        same = b"<svg viewBox='0 0 64 64'><rect/><circle/><path/></svg>"
+        self.s.app("one", {"www/icon.svg": same})
+        self.s.app("two", {"www/icon.svg": same})
+        code, out = self.s.run("build")
+        self.assertIn("same drawing", out)
+
+    def test_rule_offline_and_no_code_from_strings(self):
+        self.refused({"www/index.html": b"<script src='https://cdn.example.org/x.js'></script>"}, "remote script")
+        self.refused({"www/index.html": b"<link href='//fonts.example.org/f.css' rel=stylesheet>"}, "remote css")
+        self.refused({"www/app.js": b"import x from 'https://esm.sh/x';"}, "remote import")
+        self.refused({"www/app.js": b"fetch('https://api.example.org/data')"}, "remote fetch")
+        self.refused({"www/app.js": b"eval(userText)"}, "eval")
+        self.refused({"www/app.js": b"setTimeout('go()', 10)"}, "string timer")
+
+    def test_rule_languages_and_structure(self):
+        self.refused({"www/i18n.de.json": None}, "missing German")
+        self.refused({"www/i18n.fr.json": b'{"_lang":"fr","other":"y"}'}, "different keys")
+        self.refused({"www/index.html": None}, "no index.html")
+        self.refused({"manifest.json": b'{"id":"demo","runtime":"web","web_route":"/apps/demo/","icon":"x.png","version":"1.0.1"}'}, "not its own icon")
+        self.refused({"www/big.bin": b"0" * (2 * 1024 * 1024)}, "too big")
 
     def test_keygen_never_overwrites(self):
         code, out = self.s.run("keygen")
