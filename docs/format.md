@@ -27,7 +27,7 @@ nucleoos-cardputer-index-v1
 serial <n>
 expires <unix seconds>
 apps <count>
-app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions
+app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>size<TAB>sig_sha256<TAB>permissions<TAB>names<TAB>descriptions<TAB>updated<TAB>author
 ...
 ```
 
@@ -45,6 +45,10 @@ app<TAB>id<TAB>kind<TAB>version_code<TAB>version<TAB>min_os<TAB>category<TAB>siz
 | `sig_sha256` | SHA-256 of that version's `package.sig`: binds the catalog to the exact package. |
 | `permissions` | Comma list from `net fs audio mic imu ir ble wifi gpio usb`, or `-`. Shown before install. |
 | `names`, `descriptions` | Five values separated by `|`, in the order `it en es fr de`. Names at most 24 characters, descriptions at most 120. |
+| `updated` | Unix time (day precision) this version was first published: the store's "New" tab sorts by it. |
+| `author` | Who made it, at most 40 characters. |
+
+Readers must accept extra fields after these and ignore them: new fields are only ever appended.
 
 ## Catalog signature: `index.sig`
 

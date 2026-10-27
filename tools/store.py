@@ -203,7 +203,8 @@ def load_manifest(app_id):
             fail(f"apps/{app_id}: {field} needs exactly the languages {LANGS}")
         for lang in LANGS:
             text_field(v[lang], maxlen, f"apps/{app_id}: {field}.{lang}")
-    for k in ("author", "license", "source"):
+    text_field(m.get("author"), 40, f"apps/{app_id}: author")
+    for k in ("license", "source"):
         text_field(m.get(k), 120, f"apps/{app_id}: {k}")
     perms = m.get("permissions", [])
     if not isinstance(perms, list) or any(p not in PERMISSIONS for p in perms) or len(set(perms)) != len(perms):
@@ -303,11 +304,24 @@ def cmd_build(args):
 
 
 # ── sign ──────────────────────────────────────────────────────────────────────
-def index_line(m, sig_sha, size):
+def previous_dates():
+    """(id, version_code) -> the date that version was first published, from the current catalog."""
+    out = {}
+    path = os.path.join(PUBLIC, "index.txt")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                p = line.rstrip("\n").split("\t")
+                if p[0] == "app" and len(p) >= 13 and p[12].isdigit():
+                    out[(p[1], p[3])] = int(p[12])
+    return out
+
+
+def index_line(m, sig_sha, size, updated):
     names = "|".join(m["name"][l] for l in LANGS)
     descs = "|".join(m["description"][l] for l in LANGS)
     fields = ["app", m["id"], m["kind"], str(m["version_code"]), m["version"], m["min_os"], m["category"],
-              str(size), sig_sha, ",".join(m.get("permissions", [])) or "-", names, descs]
+              str(size), sig_sha, ",".join(m.get("permissions", [])) or "-", names, descs, str(updated), m["author"]]
     return "\t".join(fields)
 
 
@@ -327,6 +341,8 @@ def cmd_sign(args):
     if key_id(priv.public_key()) not in keys:
         fail("the private key's public half is not in keys/: devices would reject everything it signs")
     lines = []
+    dates = previous_dates()
+    today = int(time.time()) // 86400 * 86400          # day precision: the catalog does not leak signing times
     for app_id in app_ids():
         m = load_manifest(app_id)
         dest = pkg_dir(m)
@@ -344,7 +360,8 @@ def cmd_sign(args):
         if not os.path.isfile(sig_path):
             fail(f"apps/{app_id}: no package for version_code {m['version_code']}, run build first")
         size = sum(os.path.getsize(full) for _, full in payload_files(app_id))
-        lines.append(index_line(m, sha256_file(sig_path), size))
+        updated = dates.get((app_id, str(m["version_code"])), today)
+        lines.append(index_line(m, sha256_file(sig_path), size, updated))
     serial = read_serial() + 1
     expires = int(time.time()) + INDEX_TTL_DAYS * 86400
     text = "\n".join([INDEX_MAGIC, f"serial {serial}", f"expires {expires}", f"apps {len(lines)}"] + lines) + "\n"
@@ -397,7 +414,7 @@ def cmd_verify(args):
     published = set()
     for row in apps:
         f = row.split("\t")
-        if len(f) != 12 or f[0] != "app":
+        if len(f) != 14 or f[0] != "app" or not f[12].isdigit():
             fail(f"public/index.txt: bad line {row[:40]}")
         app_id, code, sig_sha = f[1], f[3], f[8]
         m = load_manifest(app_id)

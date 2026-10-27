@@ -29,7 +29,7 @@
     "category": { "enum": ["games", "tools", "media", "office", "learn", "network", "security", "system"] },
     "name": { "$ref": "#/$defs/langs24" },
     "description": { "$ref": "#/$defs/langs120" },
-    "author": { "$ref": "#/$defs/text120" },
+    "author": { "type": "string", "minLength": 1, "maxLength": 40, "pattern": "^[ -{}~]+$" },
     "license": { "$ref": "#/$defs/text120" },
     "source": { "$ref": "#/$defs/text120" },
     "permissions": {
