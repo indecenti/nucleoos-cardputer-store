@@ -1,0 +1,37 @@
+{
+  "id": "units",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.0",
+  "category": "tools",
+  "abi": 3,
+  "name": {
+    "it": "Convertitore",
+    "en": "Converter",
+    "es": "Conversor",
+    "fr": "Convertisseur",
+    "de": "Umrechner"
+  },
+  "description": {
+    "it": "Converti lunghezza, peso, temperatura, volume, area, velocita, dati, tempo e pressione: un numero, tutte le unita.",
+    "en": "Convert length, weight, temperature, volume, area, speed, data, time and pressure: type a number, see every unit.",
+    "es": "Convierte longitud, peso, temperatura, volumen, area, velocidad, datos, tiempo y presion: escribe un numero.",
+    "fr": "Convertit longueur, poids, temperature, volume, surface, vitesse, donnees, temps et pression : tapez un nombre.",
+    "de": "Rechnet Laenge, Gewicht, Temperatur, Volumen, Flaeche, Tempo, Daten, Zeit und Druck um: Zahl tippen, alles sehen."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "4bf9408bee2c07d04d80c5263430a3b51bddfb3e",
+    "register": "nucleo_register_units",
+    "sources": [
+      "firmware/components/nucleo_app/app_units.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
