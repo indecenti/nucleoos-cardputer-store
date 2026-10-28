@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="app.title">PDF Editor</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-open" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1H7.5a2 2 0 0 0-1.9 1.4L3 19z"/><path d="M5.6 11.4A2 2 0 0 1 7.5 10H21l-2.6 8.6a2 2 0 0 1-1.9 1.4H3z"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-fitw" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M2 12h5m-2-2 2 2-2 2M22 12h-5m2-2-2 2 2 2"/></symbol>
+    <symbol id="i-fitp" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1.5"/><path d="M9 8h6M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-rotl" viewBox="0 0 24 24"><path d="M4 4v5h5"/><path d="M4.6 9A8 8 0 1 1 6 17.7"/></symbol>
+    <symbol id="i-rotr" viewBox="0 0 24 24"><path d="M20 4v5h-5"/><path d="M19.4 9A8 8 0 1 0 18 17.7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M3 21c3-1 5.5-3 7-6"/><path d="m14.5 4.5 5 5L10 19l-6 1 1-6z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-pages" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="15" rx="1.5"/><path d="M3 7v12a2 2 0 0 0 2 2h10"/></symbol>
+    <symbol id="i-addpdf" viewBox="0 0 24 24"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z"/><path d="M13 3v6h6M12 12v6M9 15h6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4-4a2 2 0 0 1 0-2.8L13.2 4a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L10 21z"/><path d="M7 21h14M8.5 9.5l6 6"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="m14 7 3 3"/><path d="M5 19l1-4 9.5-9.5a2.1 2.1 0 0 1 3 3L9 18z"/><path d="M3 21l2-2"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <header class="bar" role="toolbar" data-i18n-attr="aria-label:bar.label">
+    <div class="bar-group">
+      <button class="icon-btn" id="btnPanel" aria-pressed="true" data-i18n-attr="title:bar.panel;aria-label:bar.panel"><svg><use href="#i-panel"/></svg></button>
+      <button class="btn" id="btnOpen"><svg><use href="#i-open"/></svg><span data-i18n="bar.open">Open</span></button>
+      <span class="doc-name" id="docName"></span>
+      <select class="lang-pick" id="langPick" hidden data-i18n-attr="aria-label:bar.lang;title:bar.lang"></select>
+    </div>
+    <div class="bar-group bar-center" id="viewTools" hidden>
+      <button class="icon-btn" id="btnUndo" disabled data-i18n-attr="title:bar.undo;aria-label:bar.undo"><svg><use href="#i-undo"/></svg></button>
+      <button class="icon-btn" id="btnRedo" disabled data-i18n-attr="title:bar.redo;aria-label:bar.redo"><svg><use href="#i-redo"/></svg></button>
+      <span class="sep"></span>
+      <button class="icon-btn" id="btnZoomOut" data-i18n-attr="title:bar.zoomOut;aria-label:bar.zoomOut"><svg><use href="#i-minus"/></svg></button>
+      <button class="zoom-val" id="btnZoomVal" data-i18n-attr="title:bar.zoomFit">100%</button>
+      <button class="icon-btn" id="btnZoomIn" data-i18n-attr="title:bar.zoomIn;aria-label:bar.zoomIn"><svg><use href="#i-plus"/></svg></button>
+      <button class="icon-btn" id="btnFitW" aria-pressed="true" data-i18n-attr="title:bar.fitWidth;aria-label:bar.fitWidth"><svg><use href="#i-fitw"/></svg></button>
+      <button class="icon-btn" id="btnFitP" aria-pressed="false" data-i18n-attr="title:bar.fitPage;aria-label:bar.fitPage"><svg><use href="#i-fitp"/></svg></button>
+      <span class="sep"></span>
+      <button class="icon-btn" id="btnRotL" data-i18n-attr="title:bar.rotLeft;aria-label:bar.rotLeft"><svg><use href="#i-rotl"/></svg></button>
+      <button class="icon-btn" id="btnRotR" data-i18n-attr="title:bar.rotRight;aria-label:bar.rotRight"><svg><use href="#i-rotr"/></svg></button>
+      <span class="sep"></span>
+      <label class="page-box"><input id="pageInput" type="text" inputmode="numeric" autocomplete="off" data-i18n-attr="aria-label:bar.page"><span id="pageCount">/ 0</span></label>
+      <button class="icon-btn" id="btnSearch" data-i18n-attr="title:bar.search;aria-label:bar.search"><svg><use href="#i-search"/></svg></button>
+      <button class="icon-btn" id="btnPrint" data-i18n-attr="title:bar.print;aria-label:bar.print"><svg><use href="#i-print"/></svg></button>
+    </div>
+    <div class="bar-group bar-end">
+      <button class="btn primary" id="btnSave" disabled><svg><use href="#i-save"/></svg><span data-i18n="bar.save">Save</span></button>
+    </div>
+  </header>
+
+  <div class="searchbar" id="searchBar" hidden role="search">
+    <svg><use href="#i-search"/></svg>
+    <input type="search" id="searchInput" autocomplete="off" data-i18n-attr="placeholder:search.placeholder;aria-label:search.placeholder">
+    <span class="search-count" id="searchCount" aria-live="polite"></span>
+    <button class="icon-btn sm" id="searchPrev" data-i18n-attr="title:search.prev;aria-label:search.prev"><svg><use href="#i-up"/></svg></button>
+    <button class="icon-btn sm" id="searchNext" data-i18n-attr="title:search.next;aria-label:search.next"><svg><use href="#i-down"/></svg></button>
+    <button class="icon-btn sm" id="searchClose" data-i18n-attr="title:common.close;aria-label:common.close"><svg><use href="#i-close"/></svg></button>
+  </div>
+
+  <div class="body">
+    <aside class="panel" id="panel">
+      <div class="tabs panel-tabs" role="tablist">
+        <button type="button" role="tab" class="tab" id="tabPages" data-ptab="pages" aria-selected="false"><svg><use href="#i-pages"/></svg><span data-i18n="panel.pages">Pages</span></button>
+        <button type="button" role="tab" class="tab" id="tabStamps" data-ptab="stamps" aria-selected="true"><svg><use href="#i-pen"/></svg><span data-i18n="panel.stamps">Signatures</span></button>
+      </div>
+
+      <section class="ppane" data-ppane="pages" hidden>
+        <div class="thumb-tools" role="toolbar">
+          <button class="icon-btn sm" id="pgRotL" data-i18n-attr="title:pages.rotLeft;aria-label:pages.rotLeft"><svg><use href="#i-rotl"/></svg></button>
+          <button class="icon-btn sm" id="pgRotR" data-i18n-attr="title:pages.rotRight;aria-label:pages.rotRight"><svg><use href="#i-rotr"/></svg></button>
+          <button class="icon-btn sm danger" id="pgDel" data-i18n-attr="title:pages.delete;aria-label:pages.delete"><svg><use href="#i-trash"/></svg></button>
+          <span class="grow"></span>
+          <button class="btn sm" id="pgInsert"><svg><use href="#i-addpdf"/></svg><span data-i18n="pages.insert">Insert PDF</span></button>
+        </div>
+        <p class="panel-hint" data-i18n="pages.hint">Drag to reorder. Ctrl or Shift to select more pages.</p>
+        <ol class="thumbs" id="thumbs" role="listbox" aria-multiselectable="true" data-i18n-attr="aria-label:panel.pages"></ol>
+        <p class="panel-empty" id="thumbsEmpty" data-i18n="pages.empty">Open a PDF to see its pages.</p>
+      </section>
+
+      <section class="ppane" data-ppane="stamps">
+        <button class="btn new-stamp" id="btnNewStamp"><svg><use href="#i-plus"/></svg><span data-i18n="panel.new">New signature or stamp</span></button>
+        <ul class="stamps" id="stampList" role="listbox" data-i18n-attr="aria-label:panel.stamps"></ul>
+        <p class="panel-empty" id="stampEmpty" data-i18n="panel.empty">Create a signature.</p>
+        <p class="panel-hint" id="stampHint" hidden data-i18n="panel.hint">Click a stamp, then click on the page.</p>
+        <p class="storage" id="storageInfo" hidden></p>
+      </section>
+    </aside>
+
+    <main class="viewer" id="viewer" tabindex="-1">
+      <div class="empty" id="emptyState">
+        <div class="drop">
+          <svg class="drop-icon"><use href="#i-pen"/></svg>
+          <h1 data-i18n="empty.title">Sign a PDF</h1>
+          <p data-i18n="empty.body">Open a PDF, place your signatures and stamps, save.</p>
+          <button class="btn primary big" id="btnOpen2"><svg><use href="#i-open"/></svg><span data-i18n="empty.open">Open a PDF</span></button>
+          <p class="drop-hint" data-i18n="empty.drop">or drag it here</p>
+        </div>
+      </div>
+      <div class="pages" id="pages" hidden></div>
+    </main>
+  </div>
+
+  <div class="banner" id="banner" hidden role="status"><svg><use href="#i-lock"/></svg><span id="bannerText"></span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button class="toast-act" id="toastAct" hidden></button></div>
+  <div class="busy" id="busy" hidden><div class="spinner"></div><span id="busyText"></span></div>
+</div>
+
+<div class="print-root" id="printRoot" aria-hidden="true"></div>
+
+<!-- the selection box and its tools, moved into the page of the selected item -->
+<div class="sel" id="sel" hidden>
+  <div class="sel-rot" data-h="rot" data-i18n-attr="title:sel.rotate"></div>
+  <div class="sel-h nw" data-h="nw"></div><div class="sel-h ne" data-h="ne"></div>
+  <div class="sel-h sw" data-h="sw"></div><div class="sel-h se" data-h="se"></div>
+  <div class="sel-tools" role="toolbar">
+    <button class="icon-btn sm" data-act="dup" data-i18n-attr="title:sel.duplicate;aria-label:sel.duplicate"><svg><use href="#i-copy"/></svg></button>
+    <button class="icon-btn sm" data-act="all" data-i18n-attr="title:sel.allPages;aria-label:sel.allPages"><svg><use href="#i-pages"/></svg></button>
+    <button class="icon-btn sm danger" data-act="del" data-i18n-attr="title:sel.delete;aria-label:sel.delete"><svg><use href="#i-trash"/></svg></button>
+  </div>
+</div>
+
+<dialog class="dlg" id="dlgNew">
+  <form method="dialog" class="dlg-box" id="newForm">
+    <header class="dlg-head">
+      <h2 data-i18n="new.title">New signature or stamp</h2>
+      <button class="icon-btn" value="cancel" formnovalidate data-i18n-attr="aria-label:common.close"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" class="tab" data-tab="draw" aria-selected="true"><svg><use href="#i-pen"/></svg><span data-i18n="new.draw">Draw</span></button>
+      <button type="button" role="tab" class="tab" data-tab="image" aria-selected="false"><svg><use href="#i-image"/></svg><span data-i18n="new.image">Image</span></button>
+      <button type="button" role="tab" class="tab" data-tab="text" aria-selected="false"><svg><use href="#i-text"/></svg><span data-i18n="new.text">Text</span></button>
+    </div>
+
+    <section class="tabpane" data-pane="draw">
+      <div class="pad-wrap">
+        <canvas class="pad" id="pad"></canvas>
+        <span class="pad-line"></span>
+        <span class="pad-hint" id="padHint" data-i18n="new.drawHint">Sign here</span>
+      </div>
+      <div class="row">
+        <div class="swatches" id="drawColors" role="radiogroup" data-i18n-attr="aria-label:new.ink"></div>
+        <label class="field inline"><span data-i18n="new.thickness">Thickness</span><input type="range" id="drawWidth" min="1" max="8" step="0.5" value="3"></label>
+        <button type="button" class="btn ghost" id="padClear" data-i18n="new.clear">Clear</button>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="image" hidden>
+      <div class="img-drop" id="imgDrop">
+        <div class="img-stage" id="imgStage" hidden>
+          <canvas class="img-preview" id="imgPreview"></canvas>
+          <span class="brush" id="brush" hidden></span>
+        </div>
+        <div class="img-empty" id="imgEmpty">
+          <button type="button" class="btn" id="imgPick"><svg><use href="#i-image"/></svg><span data-i18n="new.pickImage">Choose an image</span></button>
+          <p data-i18n="new.imageHint">PNG or JPG.</p>
+        </div>
+      </div>
+      <div class="img-tools" id="imgTools" hidden>
+        <div class="row tight">
+          <div class="seg" id="bgView" role="radiogroup" data-i18n-attr="aria-label:img.viewOn">
+            <button type="button" role="radio" data-bg="checker" aria-checked="true" data-i18n="img.viewChecker">Grid</button>
+            <button type="button" role="radio" data-bg="white" aria-checked="false" data-i18n="img.viewWhite">White</button>
+            <button type="button" role="radio" data-bg="dark" aria-checked="false" data-i18n="img.viewDark">Dark</button>
+          </div>
+          <span class="grow"></span>
+          <button type="button" class="icon-btn sm" id="imgRotL" data-i18n-attr="title:img.rotLeft;aria-label:img.rotLeft"><svg><use href="#i-rotl"/></svg></button>
+          <button type="button" class="icon-btn sm" id="imgRotR" data-i18n-attr="title:img.rotRight;aria-label:img.rotRight"><svg><use href="#i-rotr"/></svg></button>
+          <button type="button" class="icon-btn sm" id="imgEraser" aria-pressed="false" data-i18n-attr="title:img.eraser;aria-label:img.eraser"><svg><use href="#i-eraser"/></svg></button>
+          <button type="button" class="icon-btn sm" id="imgEraseUndo" disabled data-i18n-attr="title:img.eraseUndo;aria-label:img.eraseUndo"><svg><use href="#i-undo"/></svg></button>
+          <button type="button" class="btn ghost sm" id="imgReplace" data-i18n="new.otherImage">Other image</button>
+        </div>
+        <div class="row tight eraser-row" id="eraserRow" hidden>
+          <label class="field inline"><span data-i18n="img.brush">Brush</span><input type="range" id="brushSize" min="4" max="80" value="24"></label>
+          <span class="hint" data-i18n="img.eraserHint">Paint over what should go away.</span>
+        </div>
+        <label class="check"><input type="checkbox" id="imgRemove" checked><span data-i18n="new.removeBg">Remove background</span></label>
+        <div class="bg-tools" id="bgTools">
+          <div class="row tight">
+            <div class="seg" id="bgMode" role="radiogroup" data-i18n-attr="aria-label:img.method">
+              <button type="button" role="radio" data-mode="paper" aria-checked="true" data-i18n="img.modePaper">Paper (automatic)</button>
+              <button type="button" role="radio" data-mode="color" aria-checked="false" data-i18n="img.modeColor">Chosen colour</button>
+            </div>
+            <button type="button" class="btn ghost sm picker" id="imgPickColor" hidden aria-pressed="false"><svg><use href="#i-drop"/></svg><span class="chip" id="keyChip"></span><span data-i18n="img.pick">Pick</span></button>
+          </div>
+          <div class="sliders">
+            <label class="field inline"><span data-i18n="new.tolerance">Strength</span><input type="range" id="imgTol" min="0" max="100" value="45"></label>
+            <label class="field inline"><span data-i18n="img.softness">Soft edges</span><input type="range" id="imgSoft" min="0" max="100" value="40"></label>
+            <label class="field inline"><span data-i18n="img.specks">Clean specks</span><input type="range" id="imgSpeck" min="0" max="100" value="20"></label>
+            <label class="field inline"><span data-i18n="img.darken">Darker ink</span><input type="range" id="imgDark" min="0" max="100" value="0"></label>
+          </div>
+        </div>
+        <div class="row tight">
+          <span class="lbl" data-i18n="new.ink">Ink</span>
+          <div class="swatches" id="imgColors" role="radiogroup" data-i18n-attr="aria-label:new.ink"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="text" hidden>
+      <label class="field"><span data-i18n="new.textLabel">Text</span><input type="text" id="txtValue" maxlength="80" autocomplete="off"></label>
+      <div class="row">
+        <button type="button" class="btn ghost" id="txtDate" data-i18n="new.today">Today's date</button>
+        <div class="seg" id="txtFonts" role="radiogroup" data-i18n-attr="aria-label:new.font"></div>
+      </div>
+      <div class="row"><div class="swatches" id="txtColors" role="radiogroup" data-i18n-attr="aria-label:new.ink"></div></div>
+      <canvas class="txt-preview checker" id="txtPreview"></canvas>
+    </section>
+
+    <footer class="dlg-foot">
+      <label class="field grow"><span data-i18n="new.name">Name</span><input type="text" id="newName" maxlength="40" autocomplete="off" data-i18n-attr="placeholder:new.namePh"></label>
+      <label class="check"><input type="checkbox" id="newKeep" checked><span data-i18n="new.keep">Keep in my stamps</span></label>
+      <div class="dlg-actions">
+        <button class="btn ghost" value="cancel" formnovalidate data-i18n="common.cancel">Cancel</button>
+        <button class="btn primary" value="ok" id="newOk" data-i18n="new.create">Create</button>
+      </div>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="dlg small" id="dlgAsk">
+  <form method="dialog" class="dlg-box">
+    <h2 id="askTitle"></h2>
+    <p id="askText"></p>
+    <label class="field" id="askField" hidden><input type="password" id="askInput" autocomplete="off"></label>
+    <div class="dlg-actions">
+      <button class="btn ghost" value="cancel" id="askCancel" data-i18n="common.cancel">Cancel</button>
+      <button class="btn primary" value="ok" id="askOk">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="filePdf" accept="application/pdf,.pdf" hidden>
+<input type="file" id="fileInsert" accept="application/pdf,.pdf" multiple hidden>
+<input type="file" id="fileImg" accept="image/png,image/jpeg,image/webp,image/*" hidden>
+
+<script src="/nucleo-app.js"></script>
+<script src="js/runtime-fallback.js"></script>
+<script src="vendor/pdfjs/pdf.js"></script>
+<script src="vendor/pdfjs/pdf.worker.js"></script>
+<script src="js/pdf-writer.js"></script>
+<script src="js/image-tools.js"></script>
+<script src="js/host.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

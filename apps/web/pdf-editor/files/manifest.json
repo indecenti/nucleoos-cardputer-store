@@ -1,0 +1,34 @@
+{
+  "id": "pdf-editor",
+  "name": "PDF Editor",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "platforms": [
+    "esp32s3"
+  ],
+  "description": "View PDFs, rotate, reorder, merge and delete pages, sign with your own signatures and stamps (images without background). Opens and saves on the device or this computer.",
+  "category": "productivity",
+  "runtime": "web",
+  "entry_service": "none",
+  "web_route": "/apps/pdf-editor/",
+  "icon": "icon.svg",
+  "permissions": [],
+  "mounts": {},
+  "handles": {
+    "role": "editor",
+    "extensions": [
+      "pdf"
+    ]
+  },
+  "subscribes": [],
+  "publishes": [],
+  "power": {
+    "budget_class": "low",
+    "wants_wakeup": []
+  },
+  "mesh": {
+    "exposes": [],
+    "consumes": []
+  }
+}

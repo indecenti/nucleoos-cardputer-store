@@ -1,7 +1,7 @@
 nucleoos-cardputer-index-v2
 channel native
-serial 13
-expires 1803594123
+serial 14
+expires 1803594416
 apps 18
 app	brawler	native	2	1.0.1	0.7.5	games	79764	b72306d729637632df0d8f7d395cd678eb3cac204a6774e42481b1b95fb175e7	audio,wifi	Scorribanda|Brawler|Pelea callejera|Bagarre|Strassenkampf	Picchiaduro noir a scorrimento: silhouette, combo, nemici e boss. Contro la CPU o in cooperativa.|Noir side-scrolling brawler: silhouettes, combos, enemies and bosses. Against the CPU or co-op.|Beat 'em up noir de desplazamiento: siluetas, combos, enemigos y jefes. Contra la CPU o cooperativo.|Beat'em all noir a defilement : silhouettes, combos, ennemis et boss. Contre le CPU ou en cooperation.|Noir-Brawler mit Seitenscrolling: Silhouetten, Combos, Gegner und Bosse. Gegen die CPU oder koop.	1793145600	indecenti	3	apps.nap
 app	cardler	native	2	1.0.1	0.7.5	games	56290	35510fe6d1814292ee1a55fc4aeb78240f934a4d890db71d6f8444e0bf72b6ab	audio,imu	Cardler|Cardler|Cardler|Cardler|Cardler	Mini GDR: esplora il villaggio, parla con gli abitanti, raccogli oggetti e completa le missioni.|Mini RPG: explore the village, talk to the people, collect items and complete the quests.|Mini RPG: explora la aldea, habla con la gente, recoge objetos y completa misiones.|Mini RPG : explorez le village, parlez aux habitants, ramassez des objets, finissez les quetes.|Mini-RPG: Dorf erkunden, mit Leuten reden, Gegenstaende sammeln und Quests erfuellen.	1793145600	indecenti	3	apps.nap

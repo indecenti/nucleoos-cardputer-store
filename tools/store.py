@@ -300,7 +300,7 @@ def payload_files(ch, app_id):
 # ── Cardputer rules (docs/rules.md) ───────────────────────────────────────────
 # Every app is checked against these when it is built AND when CI verifies the published tree: an app that
 # breaks one never gets a package, whoever wrote it.
-MAX_WEB_PACKAGE = 2 * 1024 * 1024          # a web app is served from SD to a browser: keep it small
+MAX_WEB_PACKAGE = 3 * 1024 * 1024          # served from SD to a browser: keep it small (a PDF engine fits)
 MAX_ICON = 16 * 1024
 TEXT_EXT = (".html", ".htm", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".md")
 # Nothing may come from the Internet: a store app works offline and cannot pull unreviewed code.

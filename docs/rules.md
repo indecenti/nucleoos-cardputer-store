@@ -23,7 +23,7 @@ repository reaches a device until the maintainer has reviewed it, built it and s
 - **Offline.** Nothing is loaded from the Internet: no remote `src`/`href`, imports, stylesheets, fonts,
   `fetch`, sockets. A store app works on a Cardputer with no connection and never pulls unreviewed code.
 - **No code from strings**: no `eval`, `new Function`, `document.write`, string timers.
-- **Small.** At most 64 files, 4 MiB per file; a web app at most 2 MiB in total.
+- **Small.** At most 64 files, 4 MiB per file; a web app at most 3 MiB in total, .gz twins included.
 - **Immutable versions.** A published `version_code` never changes; every change is a new, higher one.
 
 ## Web apps

@@ -1,0 +1,26 @@
+{
+  "id": "pdf-editor",
+  "kind": "web",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.7.5",
+  "category": "office",
+  "name": {
+    "it": "Editor PDF",
+    "en": "PDF Editor",
+    "es": "Editor PDF",
+    "fr": "Editeur PDF",
+    "de": "PDF-Editor"
+  },
+  "description": {
+    "it": "Apri un PDF e firmalo con le tue firme e timbri senza sfondo: disegnati, da foto o testo. Tutto offline.",
+    "en": "Open a PDF and sign it with your own signatures and stamps without background: drawn, from a photo or text. Offline.",
+    "es": "Abre un PDF y firmalo con tus firmas y sellos sin fondo: dibujados, desde una foto o texto. Sin conexion.",
+    "fr": "Ouvrez un PDF et signez-le avec vos signatures et tampons sans fond : dessines, photo ou texte. Hors ligne.",
+    "de": "PDF oeffnen und mit eigenen Unterschriften und Stempeln ohne Hintergrund signieren: gezeichnet, Foto, Text. Offline."
+  },
+  "author": "indecenti",
+  "license": "AGPL-3.0-or-later",
+  "source": "https://github.com/indecenti/nucleo-webos/tree/main/apps/pdf-editor",
+  "permissions": []
+}

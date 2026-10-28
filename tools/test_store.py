@@ -264,7 +264,7 @@ class T(unittest.TestCase):
         self.refused({"www/i18n.fr.json": b'{"_lang":"fr","other":"y"}'}, "different keys")
         self.refused({"www/index.html": None}, "no index.html")
         self.refused({"manifest.json": b'{"id":"demo","runtime":"web","web_route":"/apps/demo/","icon":"x.png","version":"1.0.1"}'}, "not its own icon")
-        self.refused({"www/big.bin": b"0" * (2 * 1024 * 1024)}, "too big")
+        self.refused({"www/big.bin": b"0" * (3 * 1024 * 1024)}, "too big")
 
     # ── channels and native apps ──
     def test_native_app_publishes_in_its_own_channel(self):
