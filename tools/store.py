@@ -633,6 +633,8 @@ def cmd_verify(args):
     total = 0
     for ch in CHANNELS:
         total += verify_channel(ch, keys, args)
+    import art_pack
+    art_pack.check()
     print(f"ok: {total} app(s) in {len(CHANNELS)} channels, all signatures valid")
 
 
@@ -731,6 +733,8 @@ def cmd_firmware_keys(args):
 def cmd_publish(args):
     cmd_build(args)
     cmd_sign(args)
+    import art_pack                                    # the apps' colour icons (public/<ch>/art.bin + art.sig)
+    art_pack.build()
     cmd_verify(args)
 
 

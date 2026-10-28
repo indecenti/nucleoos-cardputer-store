@@ -74,6 +74,25 @@ ECDSA P-256 with SHA-256 over the exact bytes of `index.txt`. `key id` is the fi
 the SHA-256 of the public key in DER SubjectPublicKeyInfo form; the device holds the same public keys
 (main and backup) compiled in and accepts either.
 
+## Store art: `art.bin` + `art.sig` (per channel)
+
+The apps' colour icons for the Cardputer's Store, built by `tools/art_pack.py` (run by `store.py publish`) from
+`apps/<channel>/<id>/store-icon.png` and `art/channels/<native|web>.png`. Painted with Qwen-Image 2.1
+(`tools/art/icons_paint.py`, the chosen cells in `tools/art/picks.txt`); each repeats the motif of the app's own
+launcher icon (`files/device-icon.txt`), in colour.
+
+```
+"NART"  version (1 B, = 1)  icon size (1 B, 48)  count (u16 LE)  channel (8 B, NUL-padded)
+count x { id (36 B, NUL-padded)  offset (u32 LE) }        ids: app ids, plus "@native" / "@web"
+count x  size x size RGB565 little-endian, row by row
+```
+
+Raw on purpose: the device draws an icon one row at a time straight from the SD card, with no decoder and no
+image in RAM. `art.sig` is the catalog's signature format over the exact bytes of `art.bin`. Cosmetic and
+optional: the device fetches the pair after a good catalog, only when `art.sig` changed, and keeps it only when the
+signature verifies; without it the Store draws a tile with the app's initial. Older firmware and the web shells
+never request it, so adding it changes nothing for them.
+
 ## Package: `apps/<id>/<version_code>/package.sig`
 
 ```

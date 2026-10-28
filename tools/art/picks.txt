@@ -1,0 +1,24 @@
+# Which painted cell is each app's store icon (tools/art/_raw/<cell>_c<cand>.png from tools/art/icons_paint.py).
+# app        cell          candidate
+brawler      brawler       0
+cardler      cardler.b     0
+dice         dice          0
+gbemu        gbemu         0
+ggemu        ggemu.b       0
+giardino     giardino.b    0
+orde         orde.b        1
+pinball      pinball       0
+poker        poker         0
+pong         pong          0
+reactor      reactor       0
+slots        slots.b       0
+snake        snake         1
+stelle       stelle.b      0
+tankd        tankd         0
+tanks        tanks         0
+units        units.c       0
+yahtzee      yahtzee       0
+metronome    metronome     0
+scoreboard   scoreboard.b  0
+@native      native        0
+@web         web           0
