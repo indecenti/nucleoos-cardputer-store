@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+gbemu
+1
+native
+6c5ca2716da622e07ee5a2326126d8282482c7c5b0fa9d4b1760c72565376402 116348 app.nap
+4fa0b5173110a17363716bb1ac6e47244fb220111a31f829834ff42decbcdb4b 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIAdFIEMdZrlQ9YZpyxqDUUvismwrRFCYQr1Llf+az2HnAiEAlS/OtlRMkYbEZnhgCE8zq2uHQh4BAoK6W51Sm715YcI=

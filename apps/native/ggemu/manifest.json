@@ -1,0 +1,40 @@
+{
+  "id": "ggemu",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.1",
+  "category": "games",
+  "abi": 4,
+  "name": {
+    "it": "Game Gear/Master System",
+    "en": "Game Gear/Master System",
+    "es": "Game Gear/Master System",
+    "fr": "Game Gear/Master System",
+    "de": "Game Gear/Master System"
+  },
+  "description": {
+    "it": "Emulatore Game Gear e Master System nativo: le cartucce in /data/ROMs/gg e /sms girano sul Cardputer stesso.",
+    "en": "Native Game Gear and Master System emulator: cartridges in /data/ROMs/gg and /sms run on the Cardputer itself.",
+    "es": "Emulador Game Gear y Master System nativo: los cartuchos de /data/ROMs/gg y /sms funcionan en el Cardputer.",
+    "fr": "Emulateur Game Gear et Master System natif : les cartouches de /data/ROMs/gg et /sms tournent sur le Cardputer.",
+    "de": "Nativer Game-Gear- und Master-System-Emulator: Module aus /data/ROMs/gg und /sms laufen auf dem Cardputer."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "2ba6c798ce597064a537a25c93370a559aac1c5c",
+    "register": "nucleo_register_ggemu",
+    "sources": [
+      "firmware/components/nucleo_app/app_gbemu.cpp",
+      "firmware/components/nucleo_emu/nucleo_gg.c"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "gbemu",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.1",
+  "category": "games",
+  "abi": 4,
+  "name": {
+    "it": "Game Boy",
+    "en": "Game Boy",
+    "es": "Game Boy",
+    "fr": "Game Boy",
+    "de": "Game Boy"
+  },
+  "description": {
+    "it": "Emulatore Game Boy nativo: le cartucce in /data/ROMs/gb girano sul Cardputer stesso, con salvataggi e stati.",
+    "en": "Native Game Boy emulator: cartridges in /data/ROMs/gb run on the Cardputer itself, with saves and states.",
+    "es": "Emulador Game Boy nativo: los cartuchos de /data/ROMs/gb funcionan en el propio Cardputer, con partidas y estados.",
+    "fr": "Emulateur Game Boy natif : les cartouches de /data/ROMs/gb tournent sur le Cardputer, avec sauvegardes et etats.",
+    "de": "Nativer Game-Boy-Emulator: Module aus /data/ROMs/gb laufen auf dem Cardputer selbst, mit Spielstaenden."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "2ba6c798ce597064a537a25c93370a559aac1c5c",
+    "register": "nucleo_register_gbemu",
+    "sources": [
+      "firmware/components/nucleo_app/app_gbemu.cpp",
+      "firmware/components/nucleo_emu/nucleo_gb.c",
+      "firmware/components/nucleo_emu/vendor/minigb_apu.c"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
