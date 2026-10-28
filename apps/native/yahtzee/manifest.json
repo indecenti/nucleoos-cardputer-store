@@ -1,0 +1,40 @@
+{
+  "id": "yahtzee",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.0",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Yahtzee",
+    "en": "Yahtzee",
+    "es": "Yahtzee",
+    "fr": "Yahtzee",
+    "de": "Yahtzee"
+  },
+  "description": {
+    "it": "Yahtzee a turni con dadi 3D: da 1 a 4 giocatori sullo stesso dispositivo, o contro la CPU.",
+    "en": "Turn-based Yahtzee with 3D dice: 1 to 4 players on the same device, or against the CPU.",
+    "es": "Yahtzee por turnos con dados 3D: de 1 a 4 jugadores en el mismo dispositivo, o contra la CPU.",
+    "fr": "Yahtzee au tour par tour avec des des 3D : de 1 a 4 joueurs sur le meme appareil, ou contre le CPU.",
+    "de": "Rundenbasiertes Yahtzee mit 3D-Wuerfeln: 1 bis 4 Spieler am selben Geraet oder gegen die CPU."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "imu"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "3eb5ad97f3dced1ba5049f061d019a7addc24f60",
+    "register": "nucleo_register_yahtzee",
+    "sources": [
+      "firmware/components/nucleo_app/app_yahtzee.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}

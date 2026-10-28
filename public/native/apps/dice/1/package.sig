@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+dice
+1
+native
+390ddb906dc90276f2b59164bb493f4364b6e1191d60d124edbd6bd9f2bb761c 21156 app.nap
+739389c30c91fe8f01cd7eb505cbea220c5b9a1d2b500f2247ca5ce30d1c01c6 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEYCIQD32knQxQkwy6LBQwL66IEcvUjg4u5c/KhBTD7fdJcZ2AIhAPblxeyIgq4N53JJZUNrEmxlzoHAM20qz0wVw4bdVh65

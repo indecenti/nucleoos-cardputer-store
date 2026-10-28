@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+yahtzee
+1
+native
+cc864dd37f9a6e3064dd0027eb43e931753ed1d7cbc4a971d07b953959d51fff 39376 app.nap
+4ba1a22dfd91909b971abb814aebed3975aec697498f88eb37001340c35fbfc6 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIQDORAM+jT70GHVX0qH+iQ6N6yHpPKzk3o9L3yXn/tqs6wIgcYZjx23NsPnIeLVBsd+Y29Qxp2e7CfOoJl9V+03sRF4=

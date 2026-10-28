@@ -1,0 +1,40 @@
+{
+  "id": "pong",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.0",
+  "category": "games",
+  "abi": 3,
+  "name": {
+    "it": "Pong",
+    "en": "Pong",
+    "es": "Pong",
+    "fr": "Pong",
+    "de": "Pong"
+  },
+  "description": {
+    "it": "Pong arcade: 1 contro 1 in rete tra due dispositivi, o contro la CPU.",
+    "en": "Arcade Pong: 1 vs 1 over the network between two devices, or against the CPU.",
+    "es": "Pong arcade: 1 contra 1 en red entre dos dispositivos, o contra la CPU.",
+    "fr": "Pong arcade : 1 contre 1 en reseau entre deux appareils, ou contre le CPU.",
+    "de": "Arcade-Pong: 1 gegen 1 im Netz zwischen zwei Geraeten oder gegen die CPU."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio",
+    "wifi"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "3eb5ad97f3dced1ba5049f061d019a7addc24f60",
+    "register": "nucleo_register_pong",
+    "sources": [
+      "firmware/components/nucleo_app/app_pong.cpp"
+    ],
+    "flags": 0,
+    "ram": 0
+  }
+}
