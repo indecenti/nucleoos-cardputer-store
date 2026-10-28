@@ -71,6 +71,9 @@ MAX_NAME = 24
 MAX_DESC = 120
 MAX_NATIVE_PACKAGE = 512 * 1024            # a .nap runs from a 252 KB flash scratch region; with its icon
 NATIVE_FILES = {"app.nap", "device-icon.txt"}
+# A native game's own es/fr/de text (tools/game-i18n packs from the same NucleoOS commit): all three or none.
+NATIVE_I18N = {"i18n.es", "i18n.fr", "i18n.de"}
+MAX_I18N_PACK = 12288                      # firmware game_text.cpp GT_MAX_PACK
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}(-dirty)?$")       # -dirty: a test build, refused at signing
 SRC_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._/-]*\.(?:c|cc|cpp)$")
 INDEX_TTL_DAYS = 120                       # a catalog older than this is refused (anti-freeze)
@@ -406,8 +409,15 @@ def cardputer_rules(m, files):
 def native_rules(m, rel, total):
     """A native package is its module and its launcher icon, nothing else; the module says what the manifest says."""
     app_id = m["id"]
-    if set(rel) != NATIVE_FILES:
-        rule_fail(app_id, f"a native app ships exactly {sorted(NATIVE_FILES)} (has {sorted(rel)})")
+    extra = set(rel) - NATIVE_FILES
+    if not NATIVE_FILES <= set(rel) or (extra and extra != NATIVE_I18N):
+        rule_fail(app_id, f"a native app ships exactly {sorted(NATIVE_FILES)}, plus all of {sorted(NATIVE_I18N)} "
+                          f"or none (has {sorted(rel)})")
+    for name in sorted(extra):
+        with open(rel[name], "rb") as f:
+            pk = f.read()
+        if len(pk) < 6 or len(pk) > MAX_I18N_PACK or pk[:4] != b"GTX1" or pk[-1] != 0:
+            rule_fail(app_id, f"{name} is not a game text pack (tools/game-i18n/build.mjs in NucleoOS)")
     if total > MAX_NATIVE_PACKAGE:
         rule_fail(app_id, f"native packages are at most {MAX_NATIVE_PACKAGE} B ({total} B)")
     commit = m["build"]["commit"]

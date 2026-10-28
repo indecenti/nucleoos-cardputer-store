@@ -1,8 +1,8 @@
 {
   "id": "brawler",
   "kind": "native",
-  "version": "1.0.0",
-  "version_code": 1,
+  "version": "1.0.1",
+  "version_code": 2,
   "min_os": "0.7.5",
   "category": "games",
   "abi": 3,
@@ -29,7 +29,7 @@
   ],
   "build": {
     "repo": "indecenti/NucleoOs",
-    "commit": "1b1cfd8a7883416a6e442ea2d429723c9a88857b",
+    "commit": "016f00a4e7753324de0a16efcf7d78ae88d85289",
     "register": "nucleo_register_brawler",
     "sources": [
       "firmware/components/nucleo_app/app_brawler.cpp",

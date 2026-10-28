@@ -1,0 +1,12 @@
+nucleoos-cardputer-pkg-v1
+tankd
+2
+native
+884c7877b40c1aa1b295a87ef045183cbe1748c3881c3e08713647264e8b0128 78832 app.nap
+16db28a60bb3ee935240c269a0daa6644e95deedd8c21d5ba3ddb19a3f3a3520 1056 device-icon.txt
+effa4c82b13f98fb8f90d3c7d59802596e0a30334bea00894c8eec877f160c2f 2299 i18n.de
+a09ac3d0f30a80fd9b879ddcbba0429a5f53e0436eddd31d253d7c640e1146dd 2264 i18n.es
+7e90fbfc2eccaf946f0355c3a27f7a37e1e9dd87dc38bc944582f670b9df1dfc 2270 i18n.fr
+--
+key 7144a7c1dde55968
+sig MEUCIGSjBc9MJWOQUHy8YCDM9qGWmaGadgluwzEUF+xo/+l5AiEAsF0pJijLY0UHlfTGyWRLUQSG0sIuYrFukUbjwVQyB0E=

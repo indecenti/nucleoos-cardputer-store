@@ -48,7 +48,15 @@ Run on the Cardputer itself, loaded from the SD card into a flash region and exe
 ```
 app.nap              the module, built by tools/native_build.py from NucleoOS source
 device-icon.txt      its launcher icon
+i18n.es/.fr/.de      a game's text in Spanish, French and German: all three or none
 ```
+
+- **Its own languages.** A game that writes its text with `GT()` ships the three packs NucleoOS builds from
+  `tools/game-i18n/<id>.json` at the recipe's commit (`tools/sd-sim/system/i18n/games/<id>.<lang>`);
+  `tools/native_build.py` copies them and `--check` compares them too. Italian and English are in the module.
+  A firmware that knows them (game_text reading `/sd/apps/<id>/i18n.<lang>` first) uses the installed packs, so
+  the game speaks five languages even on a card whose system content is older; an older firmware ignores them
+  and reads its system copy.
 
 - **Built from committed source, reproducibly.** The manifest's `build` recipe names the NucleoOS commit and
   sources; `tools/native_build.py --check` rebuilds the module byte for byte from it. A test build from a

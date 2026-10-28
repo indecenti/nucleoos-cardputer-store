@@ -1,0 +1,12 @@
+nucleoos-cardputer-pkg-v1
+yahtzee
+2
+native
+cc864dd37f9a6e3064dd0027eb43e931753ed1d7cbc4a971d07b953959d51fff 39376 app.nap
+4ba1a22dfd91909b971abb814aebed3975aec697498f88eb37001340c35fbfc6 1056 device-icon.txt
+59380cb9406dc8835c4e8169aba7b876d122a61fe418b033f52ded897b2f9f7d 1024 i18n.de
+ca389f68cf92b43c6708be29dbc12205e6fb8bdd67402a3fe63da8ff5321a56d 996 i18n.es
+95bcead89610ee30024053f9412c29191c5ede64abb9ccace4b17d1e99c13e58 985 i18n.fr
+--
+key 7144a7c1dde55968
+sig MEUCIHsAXLxzGjTN0m5M0/d7HJsDLEGKmsjwxr3C/A9WbTNrAiEA68kyEAzJzvnp0zwXGt/YG8RYEEvhzI9XiEGiMMKjYC4=

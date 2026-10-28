@@ -1,9 +1,0 @@
-nucleoos-cardputer-pkg-v1
-giardino
-1
-native
-e03f6ac3601d0014f9cc0746b98bf63b23b2f180fcb78d24e76a1700a0b938af 39716 app.nap
-7a579caddb10005eef01bf752086d805404fb4bbb47ae1339099707aee52a873 1056 device-icon.txt
---
-key 7144a7c1dde55968
-sig MEUCIAwsH8xkvTFAJ0DbLB0xKU7O/Ha0sUVXnokVooTJ80NlAiEAszWuWgunaFXNGkkgeUWRlS1zIYFo7BIODXO0rDaZrsc=

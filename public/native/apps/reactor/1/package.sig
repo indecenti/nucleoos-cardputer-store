@@ -1,9 +1,0 @@
-nucleoos-cardputer-pkg-v1
-reactor
-1
-native
-2e32d072604db7b7f6fa120f7647e54633fdea2fd82f49f1d5588502df74131f 40804 app.nap
-0f83c904bc3b128ed2561ae7c33e10cbcc5e80ead78d9f4ab606115678592080 1056 device-icon.txt
---
-key 7144a7c1dde55968
-sig MEUCIQCO3lxCu9450qDmI0ocGr9Cask0SBIimoPEFG5/Xod3zQIgc/QCyM9Pc0J25Z/bBdDdsXaHg99BAsNABsX4sqOax3s=

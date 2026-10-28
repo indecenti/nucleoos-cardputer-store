@@ -1,8 +1,8 @@
 {
   "id": "orde",
   "kind": "native",
-  "version": "1.0.0",
-  "version_code": 1,
+  "version": "1.0.1",
+  "version_code": 2,
   "min_os": "0.7.5",
   "category": "games",
   "abi": 3,
@@ -29,7 +29,7 @@
   ],
   "build": {
     "repo": "indecenti/NucleoOs",
-    "commit": "e8b59d64ef725187636d6a185ff5f96560773e88",
+    "commit": "016f00a4e7753324de0a16efcf7d78ae88d85289",
     "register": "nucleo_register_vs",
     "sources": [
       "firmware/components/nucleo_app/app_vs.cpp",

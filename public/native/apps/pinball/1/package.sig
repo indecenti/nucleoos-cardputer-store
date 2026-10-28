@@ -1,9 +1,0 @@
-nucleoos-cardputer-pkg-v1
-pinball
-1
-native
-eedd64b6e04432bd635b0e606495869ecdda49293e353085d10247a4d66169f0 51764 app.nap
-6c3a871c691dae0f3c2e7ed1cc02d17152273eb950cbe342ece2b78b5d2d2231 1056 device-icon.txt
---
-key 7144a7c1dde55968
-sig MEUCIDtOCO2sTr6xHGw+9fc0XEd60liyaZvziDaZnfSpaYKfAiEA5CVIHQ9V6S7/7HGa4pT/TWomLwIQeNFqvogtOMXFSY4=

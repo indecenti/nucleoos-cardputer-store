@@ -137,6 +137,26 @@ def inspect(readelf, nap, app_id, abi):
     return {"text": loads[0][3], "rodata": loads[1][3], "data": loads[2][3], "layout": f"{layout:08x}"}
 
 
+LANG_PACKS = ("es", "fr", "de")
+
+
+def i18n_paths(app_id):
+    """The game's text: its translations and the packs built from them (tools/game-i18n in NucleoOS)."""
+    return [f"tools/game-i18n/{app_id}.json"] + [f"tools/sd-sim/system/i18n/games/{app_id}.{l}" for l in LANG_PACKS]
+
+
+def lang_packs(fw, app_id):
+    """{"i18n.<lang>": bytes} from the firmware checkout, or {} for an app without game text packs."""
+    found = {}
+    for l in LANG_PACKS:
+        p = os.path.join(fw, "tools", "sd-sim", "system", "i18n", "games", f"{app_id}.{l}")
+        if os.path.isfile(p):
+            found[f"i18n.{l}"] = open(p, "rb").read()
+    if found and len(found) != len(LANG_PACKS):
+        fail(f"tools/sd-sim/system/i18n/games/{app_id}.*: es, fr and de must all be there")
+    return found
+
+
 def build(app_id, fw, allow_dirty, out_path):
     mpath = os.path.join(NATIVE, app_id, "manifest.json")
     if not os.path.isfile(mpath):
@@ -153,7 +173,7 @@ def build(app_id, fw, allow_dirty, out_path):
         fail("manifest abi must be the ABI level (1, 2, ...)")
     fw = os.path.abspath(fw)
     head = git(fw, "rev-parse", "HEAD")
-    paths = list(b["sources"]) + ["sdk/native"]
+    paths = list(b["sources"]) + ["sdk/native"] + i18n_paths(app_id)
     dirty = bool(git(fw, "status", "--porcelain", "--", *paths))
     if dirty and not allow_dirty:
         fail(f"{', '.join(paths)} modified in {fw}: commit first (or --allow-dirty for a test build)")
@@ -216,22 +236,33 @@ def main():
     os.makedirs(os.path.dirname(nap), exist_ok=True)
     m, commit, head, imports, facts = build(a.id, a.firmware, a.allow_dirty, out)
     rec = m["build"].get("commit", "")
+    packs = lang_packs(os.path.abspath(a.firmware), a.id)     # the game's own es/fr/de text, same commit
+    files = os.path.dirname(nap)
     if a.check:
         same = os.path.isfile(nap) and open(nap, "rb").read() == open(out, "rb").read()
         os.unlink(out)
+        have = {n for n in os.listdir(files) if n.startswith("i18n.")}
+        if have != set(packs) or any(open(os.path.join(files, n), "rb").read() != d for n, d in packs.items()):
+            fail("the language packs differ from the recipe commit's tools/sd-sim/system/i18n/games")
         base = rec.split("-")[0]
         if base != head:
             # A later checkout is fine when the recipe's commit is an ancestor and nothing the module is built
             # from (its sources, sdk/native) changed in between: same inputs, same bytes.
-            paths = list(m["build"]["sources"]) + ["sdk/native"]
+            paths = list(m["build"]["sources"]) + ["sdk/native"] + i18n_paths(a.id)
             anc = subprocess.run(["git", "-C", a.firmware, "merge-base", "--is-ancestor", base, head]).returncode == 0
-            same = subprocess.run(["git", "-C", a.firmware, "diff", "--quiet", base, head, "--", *paths]).returncode == 0
-            if not (anc and same):
+            src_same = subprocess.run(["git", "-C", a.firmware, "diff", "--quiet", base, head, "--", *paths]).returncode == 0
+            if not (anc and src_same):
                 fail(f"the checkout is at {head}: the recipe's {base} is not an ancestor with the same sources")
         if not same:
             fail("the rebuilt module differs from the committed app.nap: not reproducible from its recipe")
         print(f"native_build: {a.id} reproduces byte for byte from {rec}")
         return
+    for n in os.listdir(files):
+        if n.startswith("i18n.") and n not in packs:
+            os.unlink(os.path.join(files, n))
+    for n, d in packs.items():
+        with open(os.path.join(files, n), "wb") as f:
+            f.write(d)
     if a.update_commit or not SHA_RE.match(rec) or rec.split("-")[0] != head or rec.endswith("-dirty") != commit.endswith("-dirty"):
         m["build"]["commit"] = commit
         with open(os.path.join(NATIVE, a.id, "manifest.json"), "w", encoding="utf-8", newline="\n") as f:
