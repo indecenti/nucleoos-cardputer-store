@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install "cryptography>=42,<46"
+      - run: pip install "cryptography>=42,<46" "pillow>=10,<13"   # pillow: tools/art_pack.py (store icons)
       - name: Security tests
         run: python tools/test_store.py
       - name: Verify the catalog and every package
