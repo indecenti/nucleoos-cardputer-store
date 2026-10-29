@@ -1,8 +1,8 @@
 {
   "id": "pdf-editor",
   "name": "PDF Editor",
-  "version": "1.0.0",
-  "version_code": 1,
+  "version": "1.0.1",
+  "version_code": 2,
   "min_os": "0.7.5",
   "platforms": [
     "esp32s3"

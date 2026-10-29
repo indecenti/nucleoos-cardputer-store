@@ -248,6 +248,7 @@
   }
 
   function closeDoc() {
+    S.saveHandle = null;                    // "Save" never writes another document's file
     if (io) io.disconnect();
     if (tio) tio.disconnect();
     for (const e of S.entries.values()) if (e.task) e.task.cancel();
@@ -1188,7 +1189,7 @@
     if (!main || S.pages.length !== main.pdf.numPages) return true;
     return S.pages.some((e, i) => e.src !== 0 || e.idx !== i);
   }
-  async function save() {
+  async function save(asNew) {
     if (!S.pages.length) return;
     const bad = S.sources.find((s) => !s.writable);
     if (bad) { await ask(t('save.cannotTitle'), $('bannerText').textContent, { alert: true }); return; }
@@ -1213,7 +1214,10 @@
         ? await PdfWriter.build(S.sources.map((s) => s.bytes), { images, pages: S.pages.map((e) => Object.assign(spec(e), { rotate: total(e) })) })
         : await PdfWriter.stamp(S.sources[0].bytes, { images, pages: S.pages.filter((e) => e.rot || S.items.some((i) => i.page === e.key)).map(spec) });
       const name = savedName(S.items.length > 0);
-      const r = await H.save(name, out);
+      // After the first "Save as" the shell hands back a handle: "Save" then rewrites that same file (atomically)
+      // without asking again; Ctrl+Shift+S always asks.
+      const r = await H.save(name, out, asNew ? null : S.saveHandle);
+      if (r.ok && r.handle) S.saveHandle = r.handle;
       if (r.ok) { S.dirty = false; updateButtons(); toast(t(r.where === 'device' ? 'save.doneDevice' : 'save.done', { name: r.name || name })); }
       else if (r.code !== 'cancelled') toast(r.code === 'old-shell' ? t('err.oldShell') : r.code === 'busy' ? t('err.busySave') : t('err.save'), true);
     } catch (e) {
@@ -1539,7 +1543,7 @@
     const mod = e.ctrlKey || e.metaKey;
     const k = e.key.toLowerCase();
     if (mod && k === 'o') { e.preventDefault(); pickOpen(); return; }
-    if (mod && k === 's') { e.preventDefault(); save(); return; }
+    if (mod && k === 's') { e.preventDefault(); save(e.shiftKey); return; }
     if (mod && k === 'f') { e.preventDefault(); openSearch(); return; }
     if (mod && k === 'p') { e.preventDefault(); printDoc(); return; }
     if (e.key === 'F3' || (mod && k === 'g')) { e.preventDefault(); stepSearch(e.shiftKey ? -1 : 1); return; }
@@ -1575,7 +1579,7 @@
     $('btnOpen2').addEventListener('click', () => pickOpen());
     $('filePdf').addEventListener('change', (e) => { openFile(e.target.files[0]); e.target.value = ''; });
     $('fileInsert').addEventListener('change', (e) => { insertFiles(Array.from(e.target.files)); e.target.value = ''; });
-    $('btnSave').addEventListener('click', save);
+    $('btnSave').addEventListener('click', () => save(false));
     $('btnUndo').addEventListener('click', undo);
     $('btnRedo').addEventListener('click', redo);
     $('btnZoomIn').addEventListener('click', () => stepZoom(1));
