@@ -112,6 +112,40 @@ CELLS3 = [("vnc" + ("" if i == 0 else "." + chr(97 + i)),
            "a modern computer monitor on a small stand with a big white mouse arrow pointer on its screen, " + bg)
           for i, bg in enumerate(_VNC)]
 
+# Grid 4 (seed 6501): the NES emulator (nesemu), which joined later: variations of its launcher motif, a generic
+# flat rectangular retro game controller with a d-pad and two round buttons, over colours no other icon uses.
+_NES = [
+    "on a warm brick red to dark maroon gradient",
+    "the two buttons glowing red, on a light grey to charcoal gradient",
+    "with a short cable curling away from its top edge, on a crimson to deep red gradient",
+    "on a sunny yellow to orange gradient",
+    "seen slightly from above with depth, on a cherry red gradient",
+    "the controller pale grey with black details, on a deep navy gradient",
+    "with tiny pixel sparkles around it, on a red to purple gradient",
+    "on a burnt orange to rust gradient",
+    "the controller light grey with a black inset panel, on a scarlet gradient",
+    "on a soft cream to tan gradient",
+    "with a soft glow behind it, on a dark burgundy gradient",
+    "the d-pad and buttons glossy, on a coral to red gradient",
+    "on a steel grey to dark red gradient",
+    "tilted a little to the right, on a vivid red gradient",
+    "on a mustard to brown gradient",
+    "with a small pixel heart above it, on a raspberry gradient",
+    "the controller off-white with dark grey details, on a brick red gradient",
+    "on a tomato red to orange gradient",
+    "the controller seen straight from the front, on a wine red gradient",
+    "on a pale grey to slate gradient",
+    "with small glowing pixel squares in the background, on a dark red gradient",
+    "on a rust to crimson gradient",
+    "the buttons bright red and the d-pad black, on a warm grey gradient",
+    "on an amber to red gradient",
+    "with a soft long shadow, on a ruby gradient",
+]
+CELLS4 = [("nesemu" + ("" if i == 0 else "." + chr(97 + i)),
+           "a generic flat rectangular retro game controller held sideways, with a black cross d-pad on the left and "
+           "two round buttons on the right, " + bg)
+          for i, bg in enumerate(_NES)]
+
 LEAD = ("A 5x5 grid of 25 separate, equally sized square panels separated by thin white lines. Every panel is ONE "
         "complete modern mobile app icon filling the whole panel edge to edge: a smooth rich colour gradient "
         "background covering the entire panel and one big bold simple emblem in the centre with clean glossy "
@@ -126,11 +160,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--cand", type=int, nargs="+", default=[0, 1])
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--only", default="", help="any of grid25, grid25b, grid25c")
+    ap.add_argument("--only", default="", help="any of grid25, grid25b, grid25c, grid25d")
     a = ap.parse_args()
     os.makedirs(RAW, exist_ok=True)
     models = forge.host_models()
-    for tag, seed, cells in (("grid25", SEED, CELLS), ("grid25b", 6301, CELLS2), ("grid25c", 6401, CELLS3)):
+    for tag, seed, cells in (("grid25", SEED, CELLS), ("grid25b", 6301, CELLS2), ("grid25c", 6401, CELLS3), ("grid25d", 6501, CELLS4)):
         if a.only and tag not in a.only.split(","):
             continue
         prompt = " ".join([LEAD] + [f"{i + 1}. {txt}." for i, (_, txt) in enumerate(cells)] + [TAIL])

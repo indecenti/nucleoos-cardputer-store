@@ -1,0 +1,40 @@
+{
+  "id": "nesemu",
+  "kind": "native",
+  "version": "1.2.4",
+  "version_code": 18,
+  "min_os": "0.8.6",
+  "category": "games",
+  "abi": 8,
+  "name": {
+    "it": "NES",
+    "en": "NES",
+    "es": "NES",
+    "fr": "NES",
+    "de": "NES"
+  },
+  "description": {
+    "it": "Emulatore NES nativo: le cartucce .nes in /data/ROMs/nes girano sul Cardputer stesso, con audio e salvataggi.",
+    "en": "Native NES emulator: .nes cartridges in /data/ROMs/nes run on the Cardputer itself, with sound and saves.",
+    "es": "Emulador NES nativo: los cartuchos .nes de /data/ROMs/nes funcionan en el Cardputer, con sonido y partidas.",
+    "fr": "Emulateur NES natif : les cartouches .nes de /data/ROMs/nes tournent sur le Cardputer, avec son et sauvegardes.",
+    "de": "Nativer NES-Emulator: .nes-Module aus /data/ROMs/nes laufen auf dem Cardputer, mit Ton und Spielstaenden."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "audio"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "2caeb0941d3442fd73eececc7bfd82ae0db1f24c",
+    "register": "nucleo_register_nesemu",
+    "sources": [
+      "firmware/components/nucleo_app/app_gbemu.cpp",
+      "firmware/components/nucleo_emu/nucleo_nes.c"
+    ],
+    "flags": 4,
+    "ram": 0
+  }
+}

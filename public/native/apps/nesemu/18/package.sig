@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+nesemu
+18
+native
+ead7ccff10c2b7dcdc9fc723b83c4a1f6adac2088a0f9bb8709f98f80c75068d 134252 app.nap
+6420144ab04a3dd0847fa57aef68f15114e7c47719cf8ca52f67c2a3fea5ea1a 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEYCIQD8Uq9NZsALOm7UetVmCfFMip8nTO4RsnTPc9EmrdjDrgIhAKFs+Zz4RroI5ugmQFofZqqkto5PpFNEWC1SLZHTpdj5
