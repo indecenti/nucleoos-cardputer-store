@@ -1,7 +1,7 @@
 nucleoos-cardputer-index-v2
 channel web
-serial 15
-expires 1803603133
+serial 27
+expires 1804155851
 apps 3
 app	metronome	web	2	1.0.1	0.8.0	media	35818	0d64adde8ca91fa6840372b0166fbcc7db54169db45d2e216788e1eb4dde3b62	mic	Metronomo|Metronome|Metronomo|Metronome|Metronom	Metronomo con tap tempo, accenti e suddivisioni, piu' un accordatore cromatico. Gira nel browser.|Metronome with tap tempo, accents and subdivisions, plus a chromatic tuner. Runs in the browser.|Metronomo con tap tempo, acentos y subdivisiones, y un afinador cromatico. Funciona en el navegador.|Metronome avec tap tempo, accents et subdivisions, plus un accordeur chromatique. Dans le navigateur.|Metronom mit Tap-Tempo, Akzenten und Unterteilungen, dazu ein chromatisches Stimmgeraet. Im Browser.	1793059200	indecenti	-	-
 app	pdf-editor	web	2	1.0.1	0.7.5	office	2086401	8d08b63db3d69eac8cace014dffcc10ca27034c9bebd2d688757b1bbbd7bc5ec	-	Editor PDF|PDF Editor|Editor PDF|Editeur PDF|PDF-Editor	Apri un PDF e firmalo con le tue firme e timbri senza sfondo: disegnati, da foto o testo. Tutto offline.|Open a PDF and sign it with your own signatures and stamps without background: drawn, from a photo or text. Offline.|Abre un PDF y firmalo con tus firmas y sellos sin fondo: dibujados, desde una foto o texto. Sin conexion.|Ouvrez un PDF et signez-le avec vos signatures et tampons sans fond : dessines, photo ou texte. Hors ligne.|PDF oeffnen und mit eigenen Unterschriften und Stempeln ohne Hintergrund signieren: gezeichnet, Foto, Text. Offline.	1793232000	indecenti	-	-

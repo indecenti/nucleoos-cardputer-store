@@ -22,6 +22,7 @@ repository reaches a device until the maintainer has reviewed it, built it and s
   (the device fonts have no accents): at most 24 and 120 characters.
 - **Offline.** Nothing is loaded from the Internet: no remote `src`/`href`, imports, stylesheets, fonts,
   `fetch`, sockets. A store app works on a Cardputer with no connection and never pulls unreviewed code.
+  The one exception is a native app that declares the network (below): it still never loads code.
 - **No code from strings**: no `eval`, `new Function`, `document.write`, string timers.
 - **Small.** At most 64 files, 4 MiB per file; a web app at most 3 MiB in total, .gz twins included.
 - **Immutable versions.** A published `version_code` never changes; every change is a new, higher one.
@@ -69,3 +70,24 @@ i18n.es/.fr/.de      a game's text in Spanish, French and German: all three or n
   signed; draws within 240x135 (and 320x240 on the second screen) with the system fonts and keys
   (`docs/device-ui.md` in NucleoOS).
 - **At most 512 KB** for the package; the module's code and constants fit the 252 KB flash scratch region.
+
+### Network, declared (decided 2026-11-04)
+
+A native app whose purpose is a connection the user asks for (a remote desktop to their own PC) may use the
+network, and only like this:
+
+- **Declared.** `"permissions": ["net", ...]` in the manifest, which is signed; the Store shows it before installing
+  ("network, to the PCs you pick"). ABI 7 or later.
+- **Through the system only.** The module imports `nucleo_tcp_*` (NucleoOS `nucleo_tcp.h`): TCP client connections
+  the firmware opens for it, to an address the user typed, every call bounded in time, at most two at once, closed
+  with the app. No listening, no UDP, no scans; loopback, broadcast, multicast and the Cardputer's own address are
+  refused. The firmware refuses `nucleo_tcp_connect` to a store app whose record does not grant `net`.
+- **No raw network.** A module never imports sockets, lwIP, `esp_wifi_*` or `esp_netif_*`, whatever a firmware
+  exports. `tools/store.py` reads the module's import table and fails on any of them, on `nucleo_tcp_*` without
+  `net`, and on `net` below ABI 7.
+- **Data, never code.** What comes over the connection is data the app parses (pixels, a protocol). Every length and
+  size from the other side is checked before it is used; the app is tested against a hostile peer
+  (NucleoOS `tools/experiments/vnc-hostile-server.py` for the VNC client) before it is signed.
+- **Secrets off the card.** A password the app keeps goes into `nucleo_secret` (internal flash, per app), never into
+  a file on the SD card.
+- **Said plainly.** If the protocol is not encrypted (VNC), the app and its store description say so.

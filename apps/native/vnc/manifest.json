@@ -1,0 +1,40 @@
+{
+  "id": "vnc",
+  "kind": "native",
+  "version": "1.0.0",
+  "version_code": 1,
+  "min_os": "0.8.5",
+  "category": "network",
+  "abi": 7,
+  "name": {
+    "it": "Desktop remoto",
+    "en": "Remote desktop",
+    "es": "Escritorio remoto",
+    "fr": "Bureau a distance",
+    "de": "Fernzugriff"
+  },
+  "description": {
+    "it": "Il PC sul secondo schermo via VNC: tocco e tastiera, password, zoom. Solo rete di casa: VNC non e cifrato.",
+    "en": "Your PC on the second screen over VNC: touch and keyboard, password, zoom. Home network only: VNC is not encrypted.",
+    "es": "Tu PC en la segunda pantalla por VNC: tactil y teclado, contrasena, zoom. Solo red de casa: VNC no cifra.",
+    "fr": "Votre PC sur le second ecran via VNC : tactile et clavier, mot de passe, zoom. Reseau maison : VNC non chiffre.",
+    "de": "Dein PC per VNC auf dem zweiten Schirm: Touch und Tastatur, Passwort, Zoom. Nur Heimnetz: VNC ist unverschluesselt."
+  },
+  "author": "indecenti",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "source": "https://github.com/indecenti/NucleoOs",
+  "permissions": [
+    "net"
+  ],
+  "build": {
+    "repo": "indecenti/NucleoOs",
+    "commit": "a70662ca19c9a509c58889eeb1b1c34cab26ddf9",
+    "register": "nucleo_register_vnc",
+    "sources": [
+      "firmware/components/nucleo_app/app_vnc.cpp",
+      "firmware/components/nucleo_app/vnc_des.c"
+    ],
+    "flags": 2,
+    "ram": 0
+  }
+}

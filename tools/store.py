@@ -36,6 +36,7 @@ import json
 import os
 import re
 import shutil
+import struct
 import sys
 import time
 
@@ -435,6 +436,47 @@ def native_rules(m, rel, total):
     info_id = data[at + 16:at + 49].split(b"\0")[0].decode("ascii", "replace")
     if info_id != app_id or abi != m["abi"]:
         rule_fail(app_id, f"app.nap says id {info_id!r} abi {abi}; the manifest says {app_id!r} abi {m['abi']}")
+    network_rules(m, elf_imports(app_id, data))
+
+
+def elf_imports(app_id, data):
+    """The undefined dynamic symbols of an ELF32 little-endian module: what it takes from the firmware."""
+    try:
+        shoff = struct.unpack_from("<I", data, 32)[0]
+        shentsize, shnum = struct.unpack_from("<HH", data, 46)
+        secs = [struct.unpack_from("<IIIIIIIIII", data, shoff + i * shentsize) for i in range(shnum)]
+        names = set()
+        for (_, typ, _, _, off, size, link, _, _, entsize) in secs:
+            if typ != 11 or not entsize:                 # SHT_DYNSYM
+                continue
+            str_off = secs[link][4]
+            for k in range(size // entsize):
+                st_name, _, _, _, _, st_shndx = struct.unpack_from("<IIIBBH", data, off + k * entsize)
+                if st_shndx == 0 and st_name:
+                    end = data.index(b"\0", str_off + st_name)
+                    names.add(data[str_off + st_name:end].decode("ascii", "replace"))
+        return names
+    except (struct.error, ValueError, IndexError):
+        rule_fail(app_id, "app.nap: the dynamic symbol table cannot be read")
+
+
+# Names a module must never import, whatever a firmware exports: raw sockets and the lwIP API. The network a store
+# app may have is nucleo_tcp (system-owned TCP client), and only with the "net" permission.
+RAW_NET = re.compile(r"^(lwip_|socket$|connect$|bind$|listen$|accept$|recv|send|getaddrinfo$|gethostbyname|esp_wifi_|esp_netif_|udp_|tcp_|raw_|netconn_)")
+
+
+def network_rules(m, imports):
+    """Offline unless declared: a module that reaches the network says so (permission "net"), through nucleo_tcp only."""
+    app_id = m["id"]
+    raw = sorted(n for n in imports if RAW_NET.match(n))
+    if raw:
+        rule_fail(app_id, f"app.nap imports raw network calls ({', '.join(raw[:6])}): only nucleo_tcp, with the \"net\" permission")
+    uses_tcp = any(n.startswith("nucleo_tcp_") for n in imports)
+    net = "net" in (m.get("permissions") or [])
+    if uses_tcp and not net:
+        rule_fail(app_id, "app.nap uses nucleo_tcp: its manifest must declare the \"net\" permission")
+    if net and m["abi"] < 7:
+        rule_fail(app_id, "the \"net\" permission needs ABI 7 or later (nucleo_tcp)")
 
 
 def package_text(m, files):

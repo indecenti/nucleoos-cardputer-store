@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+vnc
+1
+native
+6f786b654a5675239d322a310ef38952467cb3c630ec476c0e3a9c99029dcabc 84464 app.nap
+18707a53c6cbdacc6a2a491a007ace197cd8f0cffcc94b2591cca68a76db5726 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEUCIQCvhRTtp/hdUIEiYLmRt4YNDInbTFwvtYIiKHwWclRYtgIgH4uAq7FwZFTdDNUAzMAEonVuJZi1/q0Ky+P6FROPIWs=
