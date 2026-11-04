@@ -18,6 +18,7 @@ tankd        tankd         0
 tanks        tanks         0
 units        units.c       0
 yahtzee      yahtzee       0
+vnc          vnc.r         1
 metronome    metronome     0
 scoreboard   scoreboard.b  0
 @native      native        0

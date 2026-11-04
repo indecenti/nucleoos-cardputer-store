@@ -8,7 +8,7 @@ client): ONE 5x5 grid of 25 full-bleed square icons per render, 1024x1024, 20 st
 tools/art/_raw/ (not published); tools/art/picks.txt names the cell chosen for each app, copied to
 apps/<ch>/<id>/store-icon.png (art/channels/<name>.png for the stores' own icons), and tools/art_pack.py packs them.
 
-    python tools/art/icons_paint.py [--cand 0 1] [--only grid25,grid25b]
+    python tools/art/icons_paint.py [--cand 0 1] [--only grid25,grid25b,grid25c]
 """
 import argparse
 import os
@@ -79,6 +79,39 @@ CELLS2 = [
     ("units.c", "a yellow ruler and a red thermometer side by side under two thick opposite white arrows, left and right, on a sky blue gradient"),
 ]
 
+# Grid 3 (seed 6401): Remote desktop (vnc), which joined later: variations of its launcher motif, a monitor on a
+# stand with a big mouse arrow on the screen, over colours no other icon uses.
+_VNC = [
+    "on a turquoise to deep cyan gradient",
+    "with a small glowing signal arc above the monitor, on a turquoise to deep cyan gradient",
+    "the screen glowing soft blue, on a slate grey to steel blue gradient",
+    "on a lavender to violet gradient",
+    "the screen glowing pale cyan, on a deep teal to emerald gradient",
+    "on a peach to coral pink gradient",
+    "with two small glowing curved arrows linking it to a tiny second screen, on a cyan to indigo gradient",
+    "the screen glowing white, on an aqua to sea green gradient",
+    "on a rose pink to plum gradient",
+    "the arrow bright yellow, on a dark slate to midnight blue gradient",
+    "on a mint to turquoise gradient",
+    "with soft wifi waves behind it, on a cyan to violet gradient",
+    "the screen glowing light blue, on a bright aqua gradient",
+    "on a soft periwinkle gradient",
+    "the arrow glossy white with a black outline, on an ice blue to deep turquoise gradient",
+    "with a thin glowing link line from the screen to a small cloud, on a slate blue gradient",
+    "on a warm tangerine to rose gradient",
+    "the screen dark with a glowing white arrow, on a seafoam to teal gradient",
+    "on a lilac to deep purple gradient",
+    "seen slightly from the front with depth, on a turquoise to cobalt gradient",
+    "the screen showing a tiny desktop with two windows behind the arrow, on a sky cyan gradient",
+    "on a jade green to aqua gradient",
+    "with a small glowing broadcast dot at the arrow tip, on a dusk violet to cyan gradient",
+    "the arrow white on a glowing cyan screen, on a dark charcoal to teal gradient",
+    "on a candy pink to lavender gradient",
+]
+CELLS3 = [("vnc" + ("" if i == 0 else "." + chr(97 + i)),
+           "a modern computer monitor on a small stand with a big white mouse arrow pointer on its screen, " + bg)
+          for i, bg in enumerate(_VNC)]
+
 LEAD = ("A 5x5 grid of 25 separate, equally sized square panels separated by thin white lines. Every panel is ONE "
         "complete modern mobile app icon filling the whole panel edge to edge: a smooth rich colour gradient "
         "background covering the entire panel and one big bold simple emblem in the centre with clean glossy "
@@ -93,11 +126,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--cand", type=int, nargs="+", default=[0, 1])
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--only", default="", help="grid25 and/or grid25b")
+    ap.add_argument("--only", default="", help="any of grid25, grid25b, grid25c")
     a = ap.parse_args()
     os.makedirs(RAW, exist_ok=True)
     models = forge.host_models()
-    for tag, seed, cells in (("grid25", SEED, CELLS), ("grid25b", 6301, CELLS2)):
+    for tag, seed, cells in (("grid25", SEED, CELLS), ("grid25b", 6301, CELLS2), ("grid25c", 6401, CELLS3)):
         if a.only and tag not in a.only.split(","):
             continue
         prompt = " ".join([LEAD] + [f"{i + 1}. {txt}." for i, (_, txt) in enumerate(cells)] + [TAIL])
