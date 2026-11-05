@@ -7,7 +7,6 @@
  "bar.redo": "Rétablir (Ctrl+Y)",
  "bar.zoomOut": "Zoom arrière",
  "bar.zoomIn": "Zoom avant",
- "bar.zoomFit": "Ajuster à la largeur (0)",
  "bar.page": "Page",
  "bar.save": "Enregistrer signé",
  "panel.new": "Nouvelle signature ou tampon",
@@ -57,7 +56,7 @@
  "common.close": "Fermer",
  "common.cancel": "Annuler",
  "open.discardTitle": "Ouvrir un autre PDF ?",
- "open.discardText": "Les signatures placées dans ce document n'ont pas été enregistrées et seront perdues.",
+ "open.discardText": "Les modifications de ce document n'ont pas été enregistrées et seront perdues.",
  "open.discardOk": "Ouvrir quand même",
  "err.tooBig": "Le fichier est trop volumineux (200 Mo maximum).",
  "err.notPdf": "Ce fichier n'est pas un PDF.",
@@ -139,5 +138,14 @@
  "img.pick": "Choisir sur l'image",
  "img.softness": "Bords doux",
  "img.specks": "Nettoyer les points",
- "img.darken": "Encre plus pleine"
+ "img.darken": "Encre plus pleine",
+ "common.ok": "OK",
+ "err.noPages": "Ce PDF n'a aucune page.",
+ "bar.saveAs": "Enregistrer sous…",
+ "bar.saveTip": "Enregistrer (Ctrl+S)",
+ "bar.saveAsTip": "Enregistrer dans un nouveau fichier (Ctrl+Maj+S)",
+ "bar.openTip": "Ouvrir un PDF (Ctrl+O)",
+ "bar.zoom": "Zoom (Ctrl+plus, Ctrl+moins ; Ctrl+0 : 100 %)",
+ "bar.pageTip": "Aller à la page (Début, Fin, Pg préc., Pg suiv.)",
+ "doc.unsaved": "Modifications non enregistrées"
 }

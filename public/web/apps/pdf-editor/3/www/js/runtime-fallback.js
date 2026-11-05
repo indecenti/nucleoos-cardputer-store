@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   if (window.NucleoApp) return;
-  var LOCALES = { it: 'it-IT', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' };
+  var LOCALES = { it: 'it-IT', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN' };
   var strings = {};
   var lang = 'en';
   var store = null;

@@ -64,7 +64,7 @@
       $('askText').textContent = text || '';
       $('askField').hidden = !o.password;
       $('askInput').value = '';
-      $('askOk').textContent = o.ok || 'OK';
+      $('askOk').textContent = o.ok || t('common.ok');
       $('askOk').classList.toggle('danger', !!o.danger);
       $('askCancel').hidden = !!o.alert;
       d.returnValue = '';
@@ -87,11 +87,18 @@
   // GlobalWorkerOptions.workerPort belongs to the first document, and closing that document tore it down,
   // so opening a second PDF failed ("the worker is being destroyed").
   let pdfWorker = null;
+  // Settles true on the worker's first message (pdf.js posts "ready" as soon as its script runs), false if
+  // the worker fails to start. Only that start is timed: parsing a large file or waiting for a password
+  // is the worker working, not the worker missing.
+  let workerAlive = Promise.resolve(false);
   function startWorker() {
     try {
       workerBlob = URL.createObjectURL(new Blob([self.PDFJS_WORKER_SRC], { type: 'text/javascript' }));
       const w = new Worker(workerBlob);
-      w.addEventListener('error', () => { if (workerMode === 'worker?') workerMode = 'failed'; });
+      workerAlive = new Promise((resolve) => {
+        w.addEventListener('message', () => resolve(true), { once: true });
+        w.addEventListener('error', () => { if (workerMode === 'worker?') workerMode = 'failed'; resolve(false); });
+      });
       pdfWorker = pdfjs.PDFWorker.create({ port: w });
       workerMode = 'worker?';
     } catch (e) { workerMode = 'failed'; }
@@ -122,20 +129,18 @@
       update(pw);
     };
     if (workerMode !== 'worker?') return task.promise;
-    // The blob worker has not answered yet in this browser: give it a moment, then run on the page.
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('worker'), { code: 'worker' })), 12000));
-    try {
-      const doc = await Promise.race([task.promise, timeout]);
-      workerMode = 'worker';
-      console.info('pdf-editor: pdf.js runs in a worker');
-      return doc;
-    } catch (e) {
-      if (e && e.name === 'PasswordException') throw e;
-      if (!(e && e.code === 'worker') && workerMode !== 'failed') throw e;
-      task.destroy();
-      await mainThreadWorker();
-      return load(bytes);
+    // The blob worker has not been heard from yet in this browser: give it a moment to start, then run on the page.
+    let timer = 0;
+    const late = new Promise((resolve) => { timer = setTimeout(() => resolve(false), 12000); });
+    const alive = await Promise.race([workerAlive, late, task.promise.then(() => true, () => true)]);
+    clearTimeout(timer);
+    if (alive && workerMode !== 'failed') {
+      if (workerMode === 'worker?') { workerMode = 'worker'; console.info('pdf-editor: pdf.js runs in a worker'); }
+      return task.promise;
     }
+    task.destroy();
+    await mainThreadWorker();
+    return load(bytes);
   }
 
   // ── opening and inserting ────────────────────────────────────────────────────────────────────
@@ -149,42 +154,63 @@
     console.error(e);
     const code = e && (e.code || e.name);
     toast(code === 'big' ? t('err.tooBig') : code === 'notpdf' || code === 'InvalidPDFException' ? t('err.notPdf')
+      : code === 'nopages' ? t('err.noPages')
       : code === 'cancelled' || code === 'AbortException' ? t('err.cancelled') : t('err.open'), !(code === 'cancelled' || code === 'AbortException'));
   }
 
-  // Loads one file as a source and makes its entries (not yet in the document).
-  async function addSource(bytes, name, loaded) {
+  // Loads one file as source number `src` and makes its entries, without touching the document: a file
+  // that fails half way (a broken page, no pages at all) leaves everything as it was, and its pdf.js
+  // document is closed.
+  async function prepareSource(bytes, name, loaded, src) {
     const pdf = loaded || await load(bytes);
-    const check = await PdfWriter.inspect(bytes);
-    const src = S.sources.length;
-    S.sources.push({ bytes, pdf, name, writable: check.ok, code: check.code });
-    let refs = null;
-    const made = [];
-    for (let i = 0; i < pdf.numPages; i++) {
-      const page = await pdf.getPage(i + 1);
-      let ref = page.ref;
-      if (!ref) { refs = refs || (check.ok ? await PdfWriter.pages(bytes) : []); ref = refs[i] || null; }
-      const e = { key: src + ':' + i, src, idx: i, page, ref, rot0: mod360(page.rotate || 0), rot: 0, w: 0, h: 0,
-        el: null, layer: null, canvas: null, scale: 0, task: null, visible: false, thumb: null, thumbRot: -1, thumbVisible: false };
-      dims(e);
-      makePageEl(e);
-      S.entries.set(e.key, e);
-      made.push(e);
+    try {
+      if (!pdf.numPages) throw Object.assign(new Error('no pages'), { code: 'nopages' });
+      const check = await PdfWriter.inspect(bytes);
+      let writable = check.ok, code = check.code;
+      let refs = null;
+      const made = [];
+      for (let i = 0; i < pdf.numPages; i++) {
+        const page = await pdf.getPage(i + 1);
+        let ref = page.ref;
+        if (!ref && writable) {
+          if (!refs) refs = await PdfWriter.pages(bytes).catch(() => []);
+          ref = refs[i] || null;
+        }
+        // A page the writer cannot find: the file can be viewed, not saved (said up front, not at save time).
+        if (!ref && writable) { writable = false; code = 'syntax'; }
+        const e = { key: src + ':' + i, src, idx: i, page, ref, rot0: mod360(page.rotate || 0), rot: 0, w: 0, h: 0,
+          el: null, layer: null, canvas: null, scale: 0, task: null, visible: false, thumb: null, thumbRot: -1, thumbVisible: false };
+        dims(e);
+        makePageEl(e);
+        made.push(e);
+      }
+      return { source: { bytes, pdf, name, writable, code }, made };
+    } catch (e) {
+      pdf.destroy();
+      throw e;
     }
-    return made;
+  }
+  function addSource(prepared) {
+    S.sources.push(prepared.source);
+    for (const e of prepared.made) S.entries.set(e.key, e);
+    return prepared.made;
   }
 
+  // One file operation at a time: a second Open (keyboard, drop, the file the app was launched with) while
+  // one is loading would interleave two documents.
+  let opening = false;
   async function openFile(file) {
-    if (!file) return;
-    if (S.dirty && !(await ask(t('open.discardTitle'), t('open.discardText'), { ok: t('open.discardOk'), danger: true }))) return;
-    busy(t('busy.opening'));
+    if (!file || opening) return;
+    opening = true;
     try {
+      if (S.dirty && !(await ask(t('open.discardTitle'), t('open.discardText'), { ok: t('open.discardOk'), danger: true }))) return;
+      busy(t('busy.opening'));
       const bytes = await readPdf(file);
-      const pdf = await load(bytes);          // before closing: a file that does not open leaves the current one alone
+      const name = file.name || 'document.pdf';
+      const prepared = await prepareSource(bytes, name, null, 0);   // before closing: a file that does not open leaves the current one alone
       closeDoc();
-      const made = await addSource(bytes, file.name || 'document.pdf', pdf);
-      S.pages = made;
-      S.name = file.name || 'document.pdf';
+      S.pages = addSource(prepared);
+      S.name = name;
       $('docName').textContent = S.name;
       $('docName').title = S.name;
       document.title = S.name + ' — ' + t('app.title');
@@ -198,7 +224,7 @@
       updateButtons();
       $('viewer').scrollTop = 0;
     } catch (e) { openError(e); }
-    finally { busy(''); }
+    finally { opening = false; busy(''); }
   }
 
   // Open / Insert: the host's picker (the OS sheet: device storage or this computer/phone) when it has one,
@@ -208,7 +234,10 @@
       try {
         const got = await H.open({ multiple });
         if (got !== undefined) return got;
-      } catch (e) { console.error(e); toast(t('err.open'), true); return null; }
+      } catch (e) {
+        if (e && e.code === 'busy') return null;            // the Open sheet is already up (a second click)
+        console.error(e); toast(t('err.open'), true); return null;
+      }
     }
     $(input).click();
     return null;
@@ -223,7 +252,8 @@
   }
 
   async function insertFiles(files) {
-    if (!files || !files.length || !S.pages.length) return;
+    if (!files || !files.length || !S.pages.length || opening) return;
+    opening = true;
     const before = snapshot();
     busy(t('busy.opening'));
     let added = 0;
@@ -232,13 +262,13 @@
       const sel = S.pages.filter((e) => S.thumbSel.has(e.key));
       let at = (sel.length ? posOf(sel[sel.length - 1]) : currentPage()) + 1;
       for (const f of files) {
-        const made = await addSource(await readPdf(f), f.name);
+        const made = addSource(await prepareSource(await readPdf(f), f.name, null, S.sources.length));
         S.pages.splice(at, 0, ...made);
         at += made.length;
         added += made.length;
       }
     } catch (e) { openError(e); }
-    finally { busy(''); }
+    finally { opening = false; busy(''); }
     if (!added) return;
     syncPages();
     applyZoom(S.zoom);
@@ -251,18 +281,27 @@
     S.saveHandle = null;                    // "Save" never writes another document's file
     if (io) io.disconnect();
     if (tio) tio.disconnect();
-    for (const e of S.entries.values()) if (e.task) e.task.cancel();
+    for (const e of S.entries.values()) {
+      if (e.task) e.task.cancel();
+      freeCanvas(e);
+      const tc = e.thumb && e.thumb.querySelector('canvas');
+      if (tc) tc.width = tc.height = 0;
+    }
     for (const s of S.sources) s.pdf.destroy();
     S.sources = []; S.entries = new Map(); S.pages = []; S.items = []; S.sel = null;
-    S.undo = []; S.redo = []; S.dirty = false; S.thumbSel.clear(); S.text.clear();
-    S.search.matches = []; S.search.i = -1;
+    S.undo = []; S.redo = []; S.dirty = false; S.thumbSel.clear(); S.anchor = null; S.text.clear();
+    closeSearch();                          // a search still running over the old pages stops; its results go
     $('pages').textContent = '';
     $('thumbs').textContent = '';
     hideSel();
   }
 
+  // The sources the document still uses: a PDF inserted and then undone, or whose pages were all deleted,
+  // neither blocks saving nor goes into the saved file.
+  function usedSources() { return S.sources.filter((s, i) => S.pages.some((e) => e.src === i)); }
+
   function updateBanner() {
-    const bad = S.sources.find((s) => !s.writable);
+    const bad = usedSources().find((s) => !s.writable);
     $('banner').hidden = !bad;
     if (bad) $('bannerText').textContent = bad.code === 'encrypted' ? t('err.encrypted') : t('err.unwritable');
   }
@@ -289,6 +328,8 @@
     const holder = $('pages');
     const want = new Set(S.pages.map((e) => e.el));
     for (const el of Array.from(holder.children)) if (!want.has(el)) el.remove();
+    // a page out of the document (deleted, or an undone insert) gives its bitmap back
+    for (const e of S.entries.values()) if (!want.has(e.el)) { if (e.task) e.task.cancel(); e.visible = false; freeCanvas(e); }
     S.pages.forEach((e, i) => {
       holder.appendChild(e.el);
       e.el.querySelector('.num').textContent = String(i + 1);
@@ -311,6 +352,12 @@
         if (!e) continue;
         e.visible = x.isIntersecting;
         if (e.visible) render(e);
+        else {
+          // Out of view (beyond the margin): its bitmap goes, so scrolling through a long document does
+          // not keep every page it passed. It is drawn again before it comes back into view.
+          if (e.task) e.task.cancel();
+          freeCanvas(e);
+        }
       }
     }, { root: $('viewer'), rootMargin: '800px 0px' });
     for (const e of S.pages) io.observe(e.el);
@@ -331,16 +378,18 @@
     const task = e.page.render({ canvasContext: cv.getContext('2d'), viewport: vp, annotationMode: pdfjs.AnnotationMode.ENABLE_FORMS });
     e.task = task;
     task.promise.then(() => {
-      if (e.task !== task) return;
-      if (e.canvas) e.canvas.remove();
+      if (e.task !== task) { cv.width = cv.height = 0; return; }
+      freeCanvas(e);
       e.el.insertBefore(cv, e.layer);
       e.canvas = cv; e.scale = sig; e.task = null;
-    }, () => { if (e.task === task) e.task = null; });
+    }, () => { cv.width = cv.height = 0; if (e.task === task) e.task = null; });
   }
 
-  function dropFarCanvases() {
-    // Pages far from view give their bitmaps back: a 300-page contract must not hold 300 canvases.
-    for (const e of S.entries.values()) if (!e.visible && e.canvas) { e.canvas.width = e.canvas.height = 0; e.canvas.remove(); e.canvas = null; e.scale = 0; }
+  // A canvas's memory goes when its size does, not when the element is dropped: a 300-page contract must
+  // not hold 300 page bitmaps until the garbage collector runs.
+  function freeCanvas(e) {
+    if (e.canvas) { e.canvas.width = e.canvas.height = 0; e.canvas.remove(); e.canvas = null; }
+    e.scale = 0;
   }
 
   // ── zoom and fit ─────────────────────────────────────────────────────────────────────────────
@@ -377,15 +426,23 @@
     if (S.sel) showSel();
     placeHighlights();
     if (old !== z) { v.scrollLeft = fx * v.scrollWidth - ax; v.scrollTop = fy * v.scrollHeight - ay; }
-    $('btnZoomVal').textContent = Math.round(z * 100) + '%';
+    $('zoomCur').textContent = Math.round(z * 100) + '%';
+    $('zoomPick').value = 'cur';
     clearTimeout(rerenderTimer);
-    rerenderTimer = setTimeout(() => { for (const e of S.pages) if (e.visible) render(e); dropFarCanvases(); }, 140);
+    rerenderTimer = setTimeout(() => { for (const e of S.pages) if (e.visible) render(e); }, 140);
   }
   function stepZoom(dir, anchor) {
     setFit(null);
     const z = S.zoom;
     const next = dir > 0 ? ZOOMS.find((v) => v > z + 0.001) : ZOOMS.slice().reverse().find((v) => v < z - 0.001);
     applyZoom(next || z, anchor);
+  }
+  // The zoom menu: fit width, whole page or a fixed size.
+  function pickZoom(v) {
+    if (!S.pages.length) return;
+    if (v === 'width' || v === 'page') { setFit(v); return; }
+    const z = parseFloat(v);
+    if (z > 0) { setFit(null); applyZoom(z); }
   }
 
   function currentPage() {
@@ -397,7 +454,15 @@
   }
   function goPage(i) {
     const e = S.pages[clamp(i, 0, S.pages.length - 1)];
-    if (e) $('viewer').scrollTop = e.el.offsetTop - 12;
+    if (!e) return;
+    $('viewer').scrollTop = e.el.offsetTop - 12;
+    if (document.activeElement !== $('pageInput')) $('pageInput').value = String(posOf(e) + 1);
+  }
+  // The page box: a number goes there (clamped to the document), anything else puts the current page back.
+  function goPageInput() {
+    const n = parseInt($('pageInput').value, 10);
+    if (n > 0 && S.pages.length) goPage(Math.min(n, S.pages.length) - 1);
+    $('pageInput').value = S.pages.length ? String(n > 0 ? Math.min(n, S.pages.length) : currentPage() + 1) : '';
   }
 
   // ── history ──────────────────────────────────────────────────────────────────────────────────
@@ -424,6 +489,7 @@
     for (const it of S.items) placeEl(it);
     if (S.sel && !S.items.some((i) => i.id === S.sel)) select(null); else if (S.sel) showSel();
     S.dirty = true;
+    updateBanner();
     updateButtons();
   }
   function undo() { if (!S.undo.length) return; S.redo.push(snapshot()); restore(S.undo.pop()); }
@@ -470,7 +536,9 @@
     syncPages();
     applyZoom(S.zoom);
     commit(before);
-    toast(t('pages.deleted', { count: gone.size }), false, { label: t('bar.undoShort'), run: undo });
+    // The toast's Undo takes back this deletion only: after another change it does nothing.
+    const depth = S.undo.length;
+    toast(t('pages.deleted', { count: gone.size }), false, { label: t('bar.undoShort'), run: () => { if (S.undo.length === depth && S.undo[depth - 1] === before) undo(); } });
   }
 
   function movePages(list, toIndex) {
@@ -582,18 +650,29 @@
   function thumbKey(ev, e) {
     const i = posOf(e);
     const focus = (k) => { const n = S.pages[clamp(k, 0, S.pages.length - 1)]; if (n && n.thumb) { n.thumb.focus(); return n; } return null; };
+    const mod = ev.ctrlKey || ev.metaKey;
+    // Ctrl+arrow: the selected pages (or this one) move one place earlier or later.
+    const shift = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[ev.key];
+    if (mod && shift) {
+      ev.preventDefault();
+      const list = S.thumbSel.has(e.key) ? S.pages.filter((x) => S.thumbSel.has(x.key)) : [e];
+      const first = posOf(list[0]), last = posOf(list[list.length - 1]);
+      if (shift < 0 ? first > 0 : last < S.pages.length - 1) movePages(list, shift < 0 ? first - 1 : last + 2);
+      e.thumb.focus();
+      goPage(posOf(e));
+      return;
+    }
     const cols = Math.max(1, Math.round($('thumbs').clientWidth / (e.thumb.offsetWidth + 10)));
     const step = { ArrowRight: 1, ArrowDown: cols, ArrowLeft: -1, ArrowUp: -cols }[ev.key];
-    if (step) {
+    const to = step ? i + step : ev.key === 'Home' ? 0 : ev.key === 'End' ? S.pages.length - 1 : null;
+    if (to != null) {
       ev.preventDefault();
-      const n = focus(i + step);
-      if (n && ev.altKey && (ev.ctrlKey || ev.metaKey)) return;
+      const n = focus(to);
       if (n) { selectThumb(n, ev.shiftKey ? ev : null); goPage(posOf(n)); }
       return;
     }
     if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); selectThumb(e, ev); goPage(i); return; }
-    if (ev.key === 'Delete') { ev.preventDefault(); deletePages(S.thumbSel.size ? S.pages.filter((x) => S.thumbSel.has(x.key)) : [e]); return; }
-    if ((ev.ctrlKey || ev.metaKey) && (ev.key === 'ArrowUp' || ev.key === 'PageUp')) { ev.preventDefault(); movePages([e], Math.max(0, i - 1)); e.thumb.focus(); }
+    if (ev.key === 'Delete') { ev.preventDefault(); deletePages(S.thumbSel.size ? S.pages.filter((x) => S.thumbSel.has(x.key)) : [e]); }
   }
 
   // Click: select and show. Drag: move the selected pages (or this one) elsewhere.
@@ -1053,6 +1132,7 @@
 
   // ── search ───────────────────────────────────────────────────────────────────────────────────
   const fold = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const IDEOGRAPH = /[぀-ヿ㐀-䶿一-鿿豈-﫿]/;
   async function textOf(e) {
     if (!S.text.has(e.key)) S.text.set(e.key, e.page.getTextContent().then((c) => c.items.filter((i) => typeof i.str === 'string' && i.str)));
     return S.text.get(e.key);
@@ -1074,7 +1154,8 @@
     S.search.q = q; S.search.matches = []; S.search.i = -1;
     placeHighlights();
     const nq = fold(q.trim());
-    if (nq.length < 2) { $('searchCount').textContent = ''; return; }
+    // one letter matches everywhere; one Chinese or Japanese character is already a word
+    if (nq.length < (IDEOGRAPH.test(nq) ? 1 : 2)) { $('searchCount').textContent = ''; return; }
     $('searchCount').textContent = '…';
     for (const e of S.pages) {
       const items = await textOf(e).catch(() => []);
@@ -1136,12 +1217,22 @@
   }
 
   // ── printing ─────────────────────────────────────────────────────────────────────────────────
+  let printing = false, printCleanup = null;
   async function printDoc() {
-    if (!S.pages.length) return;
+    if (!S.pages.length || printing) return;
+    printing = true;
+    if (printCleanup) printCleanup();       // the previous print's pages, if the browser never said it was done
     busy(t('busy.printing'));
     const root = $('printRoot');
     root.textContent = '';
     const urls = [];
+    const done = () => {
+      root.textContent = '';
+      urls.forEach((u) => URL.revokeObjectURL(u));
+      urls.length = 0;
+      window.removeEventListener('afterprint', done);
+      if (printCleanup === done) printCleanup = null;
+    };
     try {
       const imgs = new Map();
       for (const it of S.items) if (!imgs.has(it.stampId)) {
@@ -1164,6 +1255,7 @@
           g.restore();
         }
         const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+        cv.width = cv.height = 0;           // the PNG holds the page now: the bitmap goes before the next one
         const url = URL.createObjectURL(blob);
         urls.push(url);
         const img = document.createElement('img');
@@ -1172,11 +1264,12 @@
         root.appendChild(img);
         await img.decode().catch(() => {});
       }
-    } catch (err) { console.error(err); toast(t('err.print'), true); busy(''); return; }
+    } catch (err) { console.error(err); done(); toast(t('err.print'), true); busy(''); printing = false; return; }
     busy('');
-    const done = () => { root.textContent = ''; urls.forEach((u) => URL.revokeObjectURL(u)); window.removeEventListener('afterprint', done); };
+    printCleanup = done;
     window.addEventListener('afterprint', done);
     try { window.print(); } catch (err) { toast(t('err.print'), true); done(); }
+    printing = false;
   }
 
   // ── saving ───────────────────────────────────────────────────────────────────────────────────
@@ -1189,13 +1282,16 @@
     if (!main || S.pages.length !== main.pdf.numPages) return true;
     return S.pages.some((e, i) => e.src !== 0 || e.idx !== i);
   }
+  // Whether saving would write anything: stamps, rotations, or pages deleted, moved or merged.
+  function hasChanges() { return !!S.pages.length && (S.items.length > 0 || S.pages.some((e) => e.rot) || structural()); }
+  let saving = false;
   async function save(asNew) {
-    if (!S.pages.length) return;
-    const bad = S.sources.find((s) => !s.writable);
+    if (!S.pages.length || saving) return;
+    const bad = usedSources().find((s) => !s.writable);
     if (bad) { await ask(t('save.cannotTitle'), $('bannerText').textContent, { alert: true }); return; }
     const restructured = structural();
-    const rotated = S.pages.some((e) => e.rot);
-    if (!S.items.length && !restructured && !rotated) { toast(t('save.nothing')); return; }
+    if (!hasChanges()) { toast(t('save.nothing')); return; }
+    saving = true;
     busy(t('busy.saving'));
     try {
       const used = Array.from(new Set(S.items.map((i) => i.stampId)));
@@ -1210,20 +1306,31 @@
         return { src: e.src, ref: e.ref, rotate: e.rot ? total(e) : undefined, draws: its.map((it) => ({ image: it.stampId, matrix: matrixOf(it, vp) })) };
       };
       if (S.pages.some((e) => !e.ref)) throw new Error('page without reference');
+      // Only the files the document still uses go to the writer, renumbered in order.
+      const files = Array.from(new Set(S.pages.map((e) => e.src))).sort((a, b) => a - b);
+      const at = new Map(files.map((s, i) => [s, i]));
       const out = restructured
-        ? await PdfWriter.build(S.sources.map((s) => s.bytes), { images, pages: S.pages.map((e) => Object.assign(spec(e), { rotate: total(e) })) })
+        ? await PdfWriter.build(files.map((i) => S.sources[i].bytes), { images, pages: S.pages.map((e) => Object.assign(spec(e), { src: at.get(e.src), rotate: total(e) })) })
         : await PdfWriter.stamp(S.sources[0].bytes, { images, pages: S.pages.filter((e) => e.rot || S.items.some((i) => i.page === e.key)).map(spec) });
       const name = savedName(S.items.length > 0);
       // After the first "Save as" the shell hands back a handle: "Save" then rewrites that same file (atomically)
-      // without asking again; Ctrl+Shift+S always asks.
-      const r = await H.save(name, out, asNew ? null : S.saveHandle);
+      // without asking again; Save as (Ctrl+Shift+S) always asks.
+      const handle = asNew ? null : S.saveHandle;
+      const r = await H.save(name, out, handle);
       if (r.ok && r.handle) S.saveHandle = r.handle;
       if (r.ok) { S.dirty = false; updateButtons(); toast(t(r.where === 'device' ? 'save.doneDevice' : 'save.done', { name: r.name || name })); }
-      else if (r.code !== 'cancelled') toast(r.code === 'old-shell' ? t('err.oldShell') : r.code === 'busy' ? t('err.busySave') : t('err.save'), true);
+      else if (r.code !== 'cancelled') {
+        // The file "Save" rewrote is gone or cannot be written any more: the next Save asks where, and the
+        // message offers that right away.
+        const lost = handle && r.code === 'failed';
+        if (lost) S.saveHandle = null;
+        toast(r.code === 'old-shell' ? t('err.oldShell') : r.code === 'busy' ? t('err.busySave') : t('err.save'), true,
+          lost ? { label: t('bar.saveAs'), run: () => save(true) } : null);
+      }
     } catch (e) {
       console.error(e);
       toast(e && e.code === 'encrypted' ? t('err.encrypted') : t('err.save'), true);
-    } finally { busy(''); }
+    } finally { saving = false; busy(''); }
   }
 
   // The image's unit square → PDF user space: bottom-left, bottom-right and top-left corners of the
@@ -1440,7 +1547,15 @@
     setTab(NEW.tab);
   }
 
+  let creating = false;
   async function createStamp() {
+    if (creating) return false;
+    creating = true;
+    $('newOk').disabled = true;
+    try { return await makeStamp(); }
+    finally { creating = false; refreshOk(); }
+  }
+  async function makeStamp() {
     const kind = NEW.tab;
     let c = null;
     if (kind === 'draw') c = NEW.pad.export();
@@ -1521,6 +1636,13 @@
     };
     paintFonts();
     H.onLang(paintFonts);
+    // Enter in a text field means Create. Left to the browser, it would press the form's first button,
+    // the Close in the header, and the drawing or image the user prepared would be gone.
+    $('newForm').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || !(e.target instanceof Element) || !e.target.matches('input[type="text"]')) return;
+      e.preventDefault();
+      if (!$('newOk').disabled) $('newForm').requestSubmit($('newOk'));
+    });
     $('newForm').addEventListener('submit', async (e) => {
       if (e.submitter && e.submitter.value === 'ok') {
         e.preventDefault();
@@ -1534,32 +1656,59 @@
     $('btnUndo').disabled = !S.undo.length;
     $('btnRedo').disabled = !S.redo.length;
     $('btnSave').disabled = !S.pages.length || (!S.items.length && !S.dirty);
+    $('btnSaveAs').disabled = !hasChanges();
+    $('dirtyDot').hidden = !(S.dirty && S.pages.length);
     $('stampHint').hidden = !S.stamps.length || !S.pages.length;
   }
 
+  // The document actions, shared by the keyboard and by the shell's forwarded shortcuts (os-shortcut).
+  function docAction(action) {
+    if (action === 'open') pickOpen();
+    else if (action === 'save') save(false);
+    else if (action === 'saveAs') save(true);
+    else if (action === 'undo') undo();
+    else if (action === 'redo') redo();
+    else if (action === 'delete' && S.sel) removeItem(S.sel);
+    else return false;
+    lastAction = { action, at: Date.now() };
+    return true;
+  }
+  let lastAction = { action: '', at: 0 };
+  const dialogOpen = () => $('dlgNew').open || $('dlgAsk').open;
+
   function onKey(e) {
+    if (e.defaultPrevented || dialogOpen()) return;          // handled by a list, or a dialog has the keyboard
     const tgt = e.target instanceof Element ? e.target : document.body;
-    const inField = tgt.closest('input, textarea, select, dialog[open]');
+    const inField = tgt.closest('input, textarea, select');
     const mod = e.ctrlKey || e.metaKey;
     const k = e.key.toLowerCase();
-    if (mod && k === 'o') { e.preventDefault(); pickOpen(); return; }
-    if (mod && k === 's') { e.preventDefault(); save(e.shiftKey); return; }
+    if (mod && k === 'o') { e.preventDefault(); docAction('open'); return; }
+    if (mod && k === 's') { e.preventDefault(); docAction(e.shiftKey ? 'saveAs' : 'save'); return; }
     if (mod && k === 'f') { e.preventDefault(); openSearch(); return; }
     if (mod && k === 'p') { e.preventDefault(); printDoc(); return; }
     if (e.key === 'F3' || (mod && k === 'g')) { e.preventDefault(); stepSearch(e.shiftKey ? -1 : 1); return; }
+    // Ctrl+plus / minus / 0: the document's zoom, not the browser's
+    if (mod && !e.altKey && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '0')) {
+      e.preventDefault();
+      if (!S.pages.length) return;
+      if (e.key === '0') pickZoom('1'); else stepZoom(e.key === '-' ? -1 : 1);
+      return;
+    }
     if (inField) return;
-    if (mod && k === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
-    if (mod && k === 'y') { e.preventDefault(); redo(); return; }
+    if (mod && k === 'z') { e.preventDefault(); docAction(e.shiftKey ? 'redo' : 'undo'); return; }
+    if (mod && k === 'y') { e.preventDefault(); docAction('redo'); return; }
     if (mod && k === 'd' && S.sel) { e.preventDefault(); duplicate(S.sel); return; }
     if (!S.pages.length) return;
     if ((e.key === '+' || e.key === '=') && !mod) { e.preventDefault(); stepZoom(1); return; }
     if (e.key === '-' && !mod) { e.preventDefault(); stepZoom(-1); return; }
     if (e.key === '0' && !mod) { e.preventDefault(); setFit('width'); return; }
+    const jump = { Home: () => 0, End: () => S.pages.length - 1, PageUp: () => currentPage() - 1, PageDown: () => currentPage() + 1 }[e.key];
+    if (jump && !mod && !e.altKey) { e.preventDefault(); goPage(jump()); return; }
     if (k === 'r' && !mod && !S.sel) { e.preventDefault(); rotatePages(targetPages(), e.shiftKey ? -1 : 1); return; }
     if (e.key === 'Escape') { if (!$('searchBar').hidden) closeSearch(); else if (S.armed) arm(null); else select(null); return; }
     if (e.key === 'Enter' && S.armed && !tgt.closest('button, [role="option"]')) { e.preventDefault(); placeAtCenter(S.armed); return; }
     if (!S.sel) return;
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItem(S.sel); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); docAction('delete'); return; }
     const step = e.shiftKey ? 10 : 1;
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (dir) {
@@ -1580,11 +1729,12 @@
     $('filePdf').addEventListener('change', (e) => { openFile(e.target.files[0]); e.target.value = ''; });
     $('fileInsert').addEventListener('change', (e) => { insertFiles(Array.from(e.target.files)); e.target.value = ''; });
     $('btnSave').addEventListener('click', () => save(false));
+    $('btnSaveAs').addEventListener('click', () => save(true));
     $('btnUndo').addEventListener('click', undo);
     $('btnRedo').addEventListener('click', redo);
     $('btnZoomIn').addEventListener('click', () => stepZoom(1));
     $('btnZoomOut').addEventListener('click', () => stepZoom(-1));
-    $('btnZoomVal').addEventListener('click', () => setFit('width'));
+    $('zoomPick').addEventListener('change', () => { const v = $('zoomPick').value; $('zoomPick').value = 'cur'; pickZoom(v); });
     $('btnFitW').addEventListener('click', () => setFit('width'));
     $('btnFitP').addEventListener('click', () => setFit('page'));
     $('btnRotL').addEventListener('click', () => rotatePages(targetPages(), -1));
@@ -1605,8 +1755,12 @@
     });
     $('btnNewStamp').addEventListener('click', openNew);
     $('pageInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { const n = parseInt($('pageInput').value, 10); if (n > 0) goPage(n - 1); $('pageInput').blur(); }
+      if (e.key === 'Enter') { e.preventDefault(); goPageInput(); $('pageInput').blur(); }
+      if (e.key === 'Escape') { e.preventDefault(); $('pageInput').value = S.pages.length ? String(currentPage() + 1) : ''; $('pageInput').blur(); }
     });
+    $('pageInput').addEventListener('change', goPageInput);
+    // Enter in the password field means OK: left to the browser it would press the form's first button, Cancel.
+    $('askInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('dlgAsk').close('ok'); } });
     let searchTimer = 0;
     $('searchInput').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => runSearch($('searchInput').value), 250); });
     $('searchInput').addEventListener('keydown', (e) => {
@@ -1662,6 +1816,15 @@
       if (f) openFile(f); else toast(t('err.notPdf'), true);
     });
     document.addEventListener('keydown', onKey);
+    // The shell forwards Ctrl+S / Ctrl+Shift+S / Ctrl+O / Ctrl+Z… typed while its own window chrome has the
+    // focus. Where the shell also listens inside this frame, the same keystroke arrives twice: once here as a
+    // key, once as a message, and only the first counts.
+    window.addEventListener('message', (e) => {
+      const d = e.data;
+      if (window.parent === window || e.source !== window.parent || !d || d.type !== 'os-shortcut' || dialogOpen()) return;
+      if (d.action === lastAction.action && Date.now() - lastAction.at < 500) return;
+      docAction(d.action);
+    });
     window.addEventListener('resize', () => { if (S.fit && S.pages.length) applyZoom(fitZoom()); });
     window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
     H.onLang(() => {

@@ -7,7 +7,6 @@
  "bar.redo": "Redo (Ctrl+Y)",
  "bar.zoomOut": "Zoom out",
  "bar.zoomIn": "Zoom in",
- "bar.zoomFit": "Fit to width (0)",
  "bar.page": "Page",
  "bar.save": "Save signed",
  "panel.new": "New signature or stamp",
@@ -57,7 +56,7 @@
  "common.close": "Close",
  "common.cancel": "Cancel",
  "open.discardTitle": "Open another PDF?",
- "open.discardText": "The signatures placed in this document have not been saved and will be lost.",
+ "open.discardText": "The changes to this document have not been saved and will be lost.",
  "open.discardOk": "Open anyway",
  "err.tooBig": "The file is too large (200 MB at most).",
  "err.notPdf": "This file is not a PDF.",
@@ -139,5 +138,14 @@
  "img.pick": "Pick on the image",
  "img.softness": "Soft edges",
  "img.specks": "Clean specks",
- "img.darken": "Fuller ink"
+ "img.darken": "Fuller ink",
+ "common.ok": "OK",
+ "err.noPages": "This PDF has no pages.",
+ "bar.saveAs": "Save as…",
+ "bar.saveTip": "Save (Ctrl+S)",
+ "bar.saveAsTip": "Save to a new file (Ctrl+Shift+S)",
+ "bar.openTip": "Open a PDF (Ctrl+O)",
+ "bar.zoom": "Zoom (Ctrl+plus, Ctrl+minus; Ctrl+0: 100%)",
+ "bar.pageTip": "Go to page (Home, End, Page Up, Page Down)",
+ "doc.unsaved": "Unsaved changes"
 }

@@ -7,7 +7,6 @@
  "bar.redo": "Ripeti (Ctrl+Y)",
  "bar.zoomOut": "Riduci",
  "bar.zoomIn": "Ingrandisci",
- "bar.zoomFit": "Adatta alla larghezza (0)",
  "bar.page": "Pagina",
  "bar.save": "Salva firmato",
  "panel.new": "Nuova firma o timbro",
@@ -57,7 +56,7 @@
  "common.close": "Chiudi",
  "common.cancel": "Annulla",
  "open.discardTitle": "Aprire un altro PDF?",
- "open.discardText": "Le firme messe in questo documento non sono state salvate e andranno perse.",
+ "open.discardText": "Le modifiche a questo documento non sono state salvate e andranno perse.",
  "open.discardOk": "Apri comunque",
  "err.tooBig": "Il file è troppo grande (massimo 200 MB).",
  "err.notPdf": "Questo file non è un PDF.",
@@ -139,5 +138,14 @@
  "img.pick": "Scegli sull'immagine",
  "img.softness": "Bordi morbidi",
  "img.specks": "Pulisci puntini",
- "img.darken": "Inchiostro più pieno"
+ "img.darken": "Inchiostro più pieno",
+ "common.ok": "OK",
+ "err.noPages": "Questo PDF non ha pagine.",
+ "bar.saveAs": "Salva come…",
+ "bar.saveTip": "Salva (Ctrl+S)",
+ "bar.saveAsTip": "Salva in un nuovo file (Ctrl+Maiusc+S)",
+ "bar.openTip": "Apri un PDF (Ctrl+O)",
+ "bar.zoom": "Zoom (Ctrl+più, Ctrl+meno; Ctrl+0: 100%)",
+ "bar.pageTip": "Vai alla pagina (Home, Fine, Pag su, Pag giù)",
+ "doc.unsaved": "Modifiche non salvate"
 }

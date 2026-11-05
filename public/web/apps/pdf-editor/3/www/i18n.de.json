@@ -7,7 +7,6 @@
  "bar.redo": "Wiederholen (Strg+Y)",
  "bar.zoomOut": "Verkleinern",
  "bar.zoomIn": "Vergrößern",
- "bar.zoomFit": "An Breite anpassen (0)",
  "bar.page": "Seite",
  "bar.save": "Signiert speichern",
  "panel.new": "Neue Unterschrift oder Stempel",
@@ -57,7 +56,7 @@
  "common.close": "Schließen",
  "common.cancel": "Abbrechen",
  "open.discardTitle": "Anderes PDF öffnen?",
- "open.discardText": "Die in diesem Dokument gesetzten Unterschriften wurden nicht gespeichert und gehen verloren.",
+ "open.discardText": "Die Änderungen an diesem Dokument wurden nicht gespeichert und gehen verloren.",
  "open.discardOk": "Trotzdem öffnen",
  "err.tooBig": "Die Datei ist zu groß (höchstens 200 MB).",
  "err.notPdf": "Diese Datei ist kein PDF.",
@@ -139,5 +138,14 @@
  "img.pick": "Im Bild wählen",
  "img.softness": "Weiche Kanten",
  "img.specks": "Punkte entfernen",
- "img.darken": "Kräftigere Tinte"
+ "img.darken": "Kräftigere Tinte",
+ "common.ok": "OK",
+ "err.noPages": "Dieses PDF hat keine Seiten.",
+ "bar.saveAs": "Speichern unter…",
+ "bar.saveTip": "Speichern (Strg+S)",
+ "bar.saveAsTip": "In einer neuen Datei speichern (Strg+Umschalt+S)",
+ "bar.openTip": "PDF öffnen (Strg+O)",
+ "bar.zoom": "Zoom (Strg+Plus, Strg+Minus; Strg+0: 100 %)",
+ "bar.pageTip": "Gehe zu Seite (Pos1, Ende, Bild auf, Bild ab)",
+ "doc.unsaved": "Ungespeicherte Änderungen"
 }

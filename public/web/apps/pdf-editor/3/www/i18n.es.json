@@ -7,7 +7,6 @@
  "bar.redo": "Rehacer (Ctrl+Y)",
  "bar.zoomOut": "Alejar",
  "bar.zoomIn": "Acercar",
- "bar.zoomFit": "Ajustar al ancho (0)",
  "bar.page": "Página",
  "bar.save": "Guardar firmado",
  "panel.new": "Nueva firma o sello",
@@ -57,7 +56,7 @@
  "common.close": "Cerrar",
  "common.cancel": "Cancelar",
  "open.discardTitle": "¿Abrir otro PDF?",
- "open.discardText": "Las firmas colocadas en este documento no se han guardado y se perderán.",
+ "open.discardText": "Los cambios de este documento no se han guardado y se perderán.",
  "open.discardOk": "Abrir igualmente",
  "err.tooBig": "El archivo es demasiado grande (máximo 200 MB).",
  "err.notPdf": "Este archivo no es un PDF.",
@@ -139,5 +138,14 @@
  "img.pick": "Elegir en la imagen",
  "img.softness": "Bordes suaves",
  "img.specks": "Limpiar puntos",
- "img.darken": "Tinta más intensa"
+ "img.darken": "Tinta más intensa",
+ "common.ok": "Aceptar",
+ "err.noPages": "Este PDF no tiene páginas.",
+ "bar.saveAs": "Guardar como…",
+ "bar.saveTip": "Guardar (Ctrl+S)",
+ "bar.saveAsTip": "Guardar en un archivo nuevo (Ctrl+Mayús+S)",
+ "bar.openTip": "Abrir un PDF (Ctrl+O)",
+ "bar.zoom": "Zoom (Ctrl+más, Ctrl+menos; Ctrl+0: 100%)",
+ "bar.pageTip": "Ir a la página (Inicio, Fin, RePág, AvPág)",
+ "doc.unsaved": "Cambios sin guardar"
 }
