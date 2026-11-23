@@ -1,0 +1,9 @@
+nucleoos-cardputer-pkg-v1
+xiaozhi
+4
+native
+9397b281f09d646cb111e5edc9085a53584b4a083160baf3c360b95b44309b0c 299876 app.nap
+c62a2c9945951bb159ee240f248b691660e08d97b95d51d2e341b99b3609fe38 1056 device-icon.txt
+--
+key 7144a7c1dde55968
+sig MEYCIQDuXnGOeJTzZ9qQTV+4d7YwcwwChJUhlyTRG30k4dT5lwIhAPp1od5BEAzELGJavW2gZmHtOO72ch04/JGUqcwxiTKf
