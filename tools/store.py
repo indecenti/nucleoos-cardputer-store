@@ -436,7 +436,9 @@ def native_rules(m, rel, total):
     info_id = data[at + 16:at + 49].split(b"\0")[0].decode("ascii", "replace")
     if info_id != app_id or abi != m["abi"]:
         rule_fail(app_id, f"app.nap says id {info_id!r} abi {abi}; the manifest says {app_id!r} abi {m['abi']}")
-    network_rules(m, elf_imports(app_id, data))
+    imports = elf_imports(app_id, data)
+    network_rules(m, imports)
+    microphone_rules(m, imports)
 
 
 def elf_imports(app_id, data):
@@ -477,6 +479,25 @@ def network_rules(m, imports):
         rule_fail(app_id, "app.nap uses nucleo_tcp: its manifest must declare the \"net\" permission")
     if net and m["abi"] < 7:
         rule_fail(app_id, "the \"net\" permission needs ABI 7 or later (nucleo_tcp)")
+
+
+# The microphone a store app may have is nucleo_mic (the system's single mic owner, closed with the app), and only
+# with the "mic" permission. Never the I2S driver or the codec directly, whatever a firmware exports.
+RAW_MIC = re.compile(r"^(i2s_|nucleo_codec_|nucleo_recorder_|es8311_)")
+
+
+def microphone_rules(m, imports):
+    """Silent unless declared: a module that listens says so (permission "mic"), through nucleo_mic only."""
+    app_id = m["id"]
+    raw = sorted(n for n in imports if RAW_MIC.match(n))
+    if raw:
+        rule_fail(app_id, f"app.nap imports audio-capture calls ({', '.join(raw[:6])}): only nucleo_mic, with the \"mic\" permission")
+    uses_mic = any(n.startswith("nucleo_mic_") for n in imports)
+    mic = "mic" in (m.get("permissions") or [])
+    if uses_mic and not mic:
+        rule_fail(app_id, "app.nap uses nucleo_mic: its manifest must declare the \"mic\" permission")
+    if mic and m["abi"] < 10:
+        rule_fail(app_id, "the \"mic\" permission of a native app needs ABI 10 or later (nucleo_mic)")
 
 
 def package_text(m, files):

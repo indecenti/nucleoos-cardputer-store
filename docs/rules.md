@@ -71,6 +71,21 @@ i18n.es/.fr/.de      a game's text in Spanish, French and German: all three or n
   (`docs/device-ui.md` in NucleoOS).
 - **At most 512 KB** for the package; the module's code and constants fit the 252 KB flash scratch region.
 
+### Microphone, declared (decided 2026-11-23)
+
+A native app that listens (a voice assistant) may use the microphone, and only like this:
+
+- **Declared.** `"permissions": ["mic", ...]` in the manifest, which is signed; the Store shows it before installing
+  ("microphone"). ABI 10 or later.
+- **Through the system only.** The module imports `nucleo_mic_*` (NucleoOS `nucleo_mic.h`): the firmware's single mic
+  owner (a recording, the web dictation stream or one app at a time), 16 kHz, closed with the app; while an app holds
+  it the speaker is off. The firmware refuses `nucleo_mic_open` to a store app whose record does not grant `mic`.
+- **No raw capture.** A module never imports the I2S driver (`i2s_*`), the codec (`nucleo_codec_*`, `es8311_*`) or the
+  recorder (`nucleo_recorder_*`). `tools/store.py` reads the module's import table and fails on any of them, on
+  `nucleo_mic_*` without `mic`, and on `mic` below ABI 10.
+- **Where the voice goes is said.** If the app sends what it hears to a service, its description says which one, and
+  a server of the user's own is offered when the protocol allows it.
+
 ### Network, declared (decided 2026-11-04)
 
 A native app whose purpose is a connection the user asks for (a remote desktop to their own PC) may use the

@@ -339,5 +339,36 @@ class T(unittest.TestCase):
         self.assertIn("refusing to overwrite", out)
 
 
+class ImportRules(unittest.TestCase):
+    """The permission rules read from a module's import table (store.py network_rules / microphone_rules)."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import store
+        cls.store = store
+
+    def refused(self, fn, m, imports):
+        with self.assertRaises(SystemExit):
+            fn(m, set(imports))
+
+    def test_microphone(self):
+        st = self.store
+        mic = {"id": "x", "abi": 10, "permissions": ["mic"]}
+        st.microphone_rules(mic, {"nucleo_mic_open", "nucleo_mic_read"})                  # declared: fine
+        st.microphone_rules({"id": "x", "abi": 3, "permissions": []}, {"memcpy"})         # silent app: fine
+        self.refused(st.microphone_rules, {"id": "x", "abi": 10, "permissions": []}, {"nucleo_mic_open"})
+        self.refused(st.microphone_rules, {"id": "x", "abi": 9, "permissions": ["mic"]}, {"nucleo_mic_open"})
+        self.refused(st.microphone_rules, mic, {"i2s_channel_read"})
+        self.refused(st.microphone_rules, mic, {"nucleo_codec_mic_open"})
+        self.refused(st.microphone_rules, mic, {"nucleo_recorder_start"})
+
+    def test_network(self):
+        st = self.store
+        st.network_rules({"id": "x", "abi": 7, "permissions": ["net"]}, {"nucleo_tcp_connect"})
+        self.refused(st.network_rules, {"id": "x", "abi": 7, "permissions": []}, {"nucleo_tcp_connect"})
+        self.refused(st.network_rules, {"id": "x", "abi": 7, "permissions": ["net"]}, {"lwip_socket"})
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
