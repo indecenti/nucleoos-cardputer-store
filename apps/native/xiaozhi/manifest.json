@@ -1,8 +1,8 @@
 {
   "id": "xiaozhi",
   "kind": "native",
-  "version": "0.1.0",
-  "version_code": 1,
+  "version": "0.1.1",
+  "version_code": 2,
   "min_os": "0.8.7",
   "category": "tools",
   "abi": 10,
@@ -29,7 +29,7 @@
   ],
   "build": {
     "repo": "indecenti/NucleoOs",
-    "commit": "7fb95dff10ec5fbc300f5ffb8d6fd7ef02c6c361",
+    "commit": "6953cab9d2410fc5710b7b53b760986dcba3b53f",
     "register": "nucleo_register_xiaozhi",
     "sources": [
       "firmware/components/nucleo_app/app_xiaozhi.cpp",
